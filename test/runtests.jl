@@ -68,3 +68,24 @@ end
     @test res == initial + trf.data
     @test grad == I
 end
+
+
+@testset "Chain" begin
+    Random.seed!(201812091503)
+
+    trfs = (
+        Updim{2,1,Float64}(1.0),
+        Shift{2,Float64}(SVector(4.0, 5.0)),
+    )
+    initial = rand(Float64,2)
+
+    res = MVector{2,Float64}(initial)
+    apply!(res, trfs)
+    @test res == [5.0, initial[1] + 5.0]
+
+    res = MVector{2,Float64}(initial)
+    grad = MMatrix{2,2,Float64}(I)
+    apply!(res, grad, trfs)
+    @test res == [5.0, initial[1] + 5.0]
+    @test grad == [0.0 1.0; 1.0 0.0]
+end

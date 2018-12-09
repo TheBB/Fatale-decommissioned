@@ -3,11 +3,13 @@ module Transforms
 using StaticArrays
 
 export Transform
-export Updim, Shift
+export Chain, Updim, Shift
 export apply!
 
 
 abstract type Transform{M,R<:Real} end
+
+Chain = Tuple{Vararg{Transform}}
 
 
 struct Updim{M,N,R} <: Transform{M,R}
@@ -41,7 +43,7 @@ struct Shift{M,R<:Real} <: Transform{M,R}
 end
 
 function codegen(::Type{<:Shift}, trf, point)
-    :($point .+= trf.data)
+    :($point .+= $trf.data)
 end
 
 codegen(tp::Type{<:Shift}, trf, point, grad) = codegen(tp, trf, point)
@@ -53,6 +55,20 @@ end
 
 @generated function apply!(point::MVector{M,R}, grad::MMatrix{M,M,R}, trf::Transform{M,R}) where {M,R}
     codegen(trf, :trf, :point, :grad)
+end
+
+@generated function apply!(point::MVector{M,R}, trfs::Chain) where {M,R}
+    codes = [codegen(trf, :(trfs[$i]), :point) for (i, trf) in enumerate(trfs.parameters)]
+    quote
+        $(codes...)
+    end
+end
+
+@generated function apply!(point::MVector{M,R}, grad::MMatrix{M,M,R}, trfs::Chain) where {M,R}
+    codes = [codegen(trf, :(trfs[$i]), :point, :grad) for (i, trf) in enumerate(trfs.parameters)]
+    quote
+        $(codes...)
+    end
 end
 
 end
