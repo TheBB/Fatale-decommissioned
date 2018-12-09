@@ -14,7 +14,7 @@ struct Updim{M,N,R} <: Transform{M,R}
     data :: R
 end
 
-function codegen(::Type{Updim{M,N,R}}, trf, point) where {M,N,R}
+function codegen(::Type{<:Updim{M,N}}, trf, point) where {M,N}
     exprs = [:($point[$(i)] = $point[$(i-1)]) for i in M:-1:N+1]
     quote
         $(exprs...)
@@ -27,7 +27,7 @@ struct Shift{M,R<:Real} <: Transform{M,R}
     data :: SVector{M,R}
 end
 
-function codegen(::Type{Shift{M,R}}, trf, point) where {M,R}
+function codegen(::Type{<:Shift}, trf, point)
     :($point .+= trf.data)
 end
 
