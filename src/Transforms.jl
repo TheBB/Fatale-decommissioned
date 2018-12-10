@@ -8,6 +8,12 @@ export Chain, Updim, Shift
 export apply, applygrad
 
 
+"""
+    abstract type Transform{M, N, R} end
+
+A `Transform` represents a transformation from M-dimensional to N-dimensional
+space with an element type R.
+"""
 abstract type Transform{From, To, R<:Real} end
 
 @inline fromdims(::Transform{From, To, R}) where {From, To, R} = From
@@ -15,6 +21,12 @@ abstract type Transform{From, To, R<:Real} end
 @inline eltype(::Transform{From, To, R}) where {From, To, R} = R
 
 
+"""
+    Chain(transforms...)
+
+Construct single chain transformation from a sequence of transformations to
+apply in order.
+"""
 struct Chain{K<:Tuple{Vararg{Transform}}, From, To, R<:Real} <: Transform{From, To, R}
     chain :: K
 
@@ -22,6 +34,8 @@ struct Chain{K<:Tuple{Vararg{Transform}}, From, To, R<:Real} <: Transform{From, 
         @assert From == fromdims(chain[1])
         @assert To == todims(chain[end])
         @assert all(R == eltype(link) for link in chain)
+        @assert all(todims(prev) == fromdims(next)
+                    for (prev, next) in zip(chain[1:end-1], chain[2:end]))
         new{K, From, To, R}(chain)
     end
 end
@@ -45,6 +59,12 @@ function codegen(::Type{Chain{K, From, To, R}}, trf, point, grad) where {K, From
 end
 
 
+"""
+    Updim{Ins, To}(value)
+
+Create a transformation increasing the dimension by one, by inserting an element `value` at index
+`Ins` in each input vector. The final result should have dimension `To`.
+"""
 struct Updim{Ins, From, To, R<:Real} <: Transform{From, To, R}
     data :: R
 
@@ -82,6 +102,11 @@ function codegen(tp::Type{Updim{Ins, From, To, R}}, trf, point, grad) where {Ins
 end
 
 
+"""
+    Shift(x::SVector)
+
+Create a shifting transformation that adds `x` to each input vector.
+"""
 struct Shift{D,R} <: Transform{D,D,R}
     data :: SVector{D,R}
 end
@@ -89,11 +114,22 @@ end
 codegen(tp::Type{<:Shift}, trf, point, grad) = (:($point + $trf.data), grad)
 
 
+"""
+    apply(trf::Transform, x::SVector) :: SVector
+
+Apply the transform `trf` to the vector `x` and return the result.
+"""
 @generated function apply(trf::Transform{From,To,R}, point::SVector{From,R}) where {From,To,R}
     (ptcode, _) = codegen(trf, :trf, :point, :grad)
     :(return $ptcode :: SVector{$To,$R})
 end
 
+"""
+    applygrad(trf::Transform, x::SVector) :: Tuple{SVector, SMatrix}
+
+Apply the transform `trf` to the vector `x` and return the resulting vector, as
+well as the gradient of the mapping.
+"""
 @generated function applygrad(trf::Transform{From,To,R}, point::SVector{From,R}) where {From,To,R}
     (ptcode, gradcode) = codegen(trf, :trf, :point, :grad)
     quote
