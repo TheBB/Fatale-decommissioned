@@ -10,62 +10,47 @@ using Fatale.Transforms
     Random.seed!(201812081344)
 
     # Dimension 2 -> 3
-    initial = rand(Float64, 3)
+    initial = @SVector rand(2)
 
-    trf = Updim{3,1,Float64}(rand(Float64))
-    res = MVector{3}(initial)
-    apply!(res, trf)
-    @test res == [trf.data, initial[1], initial[2]]
+    trf = Updim{1,3}(rand(Float64))
+    @test apply(trf, initial) == [trf.data, initial[1], initial[2]]
 
-    trf = Updim{3,2,Float64}(rand(Float64))
-    res = MVector{3}(initial)
-    apply!(res, trf)
-    @test res == [initial[1], trf.data, initial[2]]
+    trf = Updim{2,3}(rand(Float64))
+    @test apply(trf, initial) == [initial[1], trf.data, initial[2]]
 
-    trf = Updim{3,3,Float64}(rand(Float64))
-    res = MVector{3}(initial)
-    apply!(res, trf)
-    @test res == [initial[1], initial[2], trf.data]
+    trf = Updim{3,3}(rand(Float64))
+    @test apply(trf, initial) == [initial[1], initial[2], trf.data]
 
     # Dimension 1 -> 2
-    initial = rand(Float64, 2)
+    initial = @SVector rand(1)
 
-    trf = Updim{2,1,Float64}(rand(Float64))
-    res = MVector{2}(initial)
-    grad = MMatrix{2,2,Float64}(I)
-    apply!(res, grad, trf)
+    trf = Updim{1,2}(rand(Float64))
+    (res, grad) = applygrad(trf, initial)
     @test res == [trf.data, initial[1]]
     @test grad == [0.0 1.0; 1.0 0.0]
 
-    trf = Updim{2,2,Float64}(rand(Float64))
-    res = MVector{2}(initial)
-    grad = MMatrix{2,2,Float64}(I)
-    apply!(res, grad, trf)
+    trf = Updim{2,2}(rand(Float64))
+    (res, grad) = applygrad(trf, initial)
     @test res == [initial[1], trf.data]
     @test grad == [1.0 0.0; 0.0 -1.0]
 
     # Dimension 0 -> 1
-    trf = Updim{1,1,Float64}(rand(Float64))
-    res = MVector{1,Float64}(undef)
-    apply!(res, trf)
-    @test res == [trf.data]
+    initial = SVector{0,Float64}()
+    trf = Updim{1,1}(rand(Float64))
+    @test apply(trf, initial) == [trf.data]
 end
 
 
 @testset "Shift" begin
     Random.seed!(201812091010)
 
-    trf = Shift(SVector{4}(rand(Float64, 4)))
-    initial = rand(Float64, 4)
+    trf = Shift(@SVector rand(4))
+    initial = @SVector rand(4)
 
-    res = MVector{4}(initial)
-    apply!(res, trf)
-    @test res == initial + trf.data
+    @test apply(trf, initial) == initial + trf.data
 
-    res = MVector{4}(initial)
-    grad = MMatrix{4,4,Float64}(I)
-    apply!(res, grad, trf)
-    @test res == initial + trf.data
+    (point, grad) = applygrad(trf, initial)
+    @test point == initial + trf.data
     @test grad == I
 end
 
@@ -73,19 +58,12 @@ end
 @testset "Chain" begin
     Random.seed!(201812091503)
 
-    trfs = (
-        Updim{2,1,Float64}(1.0),
-        Shift{2,Float64}(SVector(4.0, 5.0)),
-    )
-    initial = rand(Float64,2)
+    trf = Chain(Updim{1,2}(1.0), Shift(SVector(4.0, 5.0)))
+    initial = @SVector rand(1)
 
-    res = MVector{2,Float64}(initial)
-    apply!(res, trfs)
-    @test res == [5.0, initial[1] + 5.0]
+    @test apply(trf, initial) == [5.0, initial[1] + 5.0]
 
-    res = MVector{2,Float64}(initial)
-    grad = MMatrix{2,2,Float64}(I)
-    apply!(res, grad, trfs)
-    @test res == [5.0, initial[1] + 5.0]
+    (point, grad) = applygrad(trf, initial)
+    @test point == [5.0, initial[1] + 5.0]
     @test grad == [0.0 1.0; 1.0 0.0]
 end
