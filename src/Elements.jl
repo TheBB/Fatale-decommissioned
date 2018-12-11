@@ -60,6 +60,9 @@ end
 
 abstract type Element{D} end
 
+Base.ndims(::Type{<:Element{D}}) where {D} = D
+Base.ndims(::Element{D}) where {D} = D
+
 struct FullElement{D, Trf<:Transform} <: Element{D}
     transform :: Trf
 end
@@ -67,12 +70,24 @@ end
 @generated function FullElement(trf)
     @assert trf <: Transform
     @assert fromdims(trf) == todims(trf)
-    :(FullElement{$(fromdims(trf)),$trf}(trf))
+    quote
+        $(Expr(:meta, :inline))
+        FullElement{$(todims(trf)), $trf}(trf)
+    end
 end
 
 struct SubElement{D, Trf<:Transform, Parent<:Element} <: Element{D}
     transform :: Trf
     parent :: Parent
+end
+
+@generated function SubElement(trf, parent)
+    @assert trf <: Transform
+    @assert todims(trf) == ndims(parent)
+    quote
+        $(Expr(:meta, :inline))
+        SubElement{$(todims(trf)), $trf, $parent}(trf, parent)
+    end
 end
 
 end

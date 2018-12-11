@@ -32,20 +32,24 @@ apply in order.
 """
 struct Chain{K<:Tuple{Vararg{Transform}}, From, To, R<:Real} <: Transform{From, To, R}
     chain :: K
+end
 
-    @inline function Chain{K, From, To, R}(chain::K) where {K<:Tuple{Vararg{Transform}}, From, To, R}
-        @assert From == fromdims(chain[1])
-        @assert To == todims(chain[end])
-        @assert all(R == eltype(link) for link in chain)
-        @assert all(todims(prev) == fromdims(next)
-                    for (prev, next) in zip(chain[1:end-1], chain[2:end]))
-        new{K, From, To, R}(chain)
+@generated function Chain(trfs...)
+    from = fromdims(trfs[1])
+    to = todims(trfs[end])
+    R = eltype(trfs[1])
+    @assert all(R == eltype(trf) for trf in trfs)
+    @assert all(todims(prev) == fromdims(next)
+                for (prev, next) in zip(trfs[1:end-1], trfs[2:end]))
+    quote
+        $(Expr(:meta, :inline))
+        Chain{Tuple{$(trfs...)}, $from, $to, $R}(trfs)
     end
 end
 
-@inline function Chain(trfs...)
-    Chain{typeof(trfs), fromdims(trfs[1]), todims(trfs[end]), eltype(trfs[1])}(trfs)
-end
+# @inline function Chain(trfs...)
+#     Chain{typeof(trfs), fromdims(trfs[1]), todims(trfs[end]), eltype(trfs[1])}(trfs)
+# end
 
 function codegen(::Type{Chain{K, From, To, R}}, trf, point, grad) where {K, From, To, R}
     ptcodes, gradcodes = Expr[], Expr[]

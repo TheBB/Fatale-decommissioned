@@ -1,3 +1,4 @@
+using BenchmarkTools
 using LinearAlgebra
 using Random
 using StaticArrays
@@ -18,4 +19,8 @@ end
 
 @testset "Domain" begin
     include("Domains.jl")
+end
+
+@testset "Allocs" begin
+    include("Allocs.jl")
 end
