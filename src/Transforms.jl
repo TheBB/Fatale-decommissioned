@@ -16,6 +16,9 @@ space with an element type R.
 """
 abstract type Transform{From, To, R<:Real} end
 
+@inline fromdims(::Type{<:Transform{From, To, R}}) where {From, To, R} = From
+@inline todims(::Type{<:Transform{From, To, R}}) where {From, To, R} = To
+@inline eltype(::Type{<:Transform{From, To, R}}) where {From, To, R} = R
 @inline fromdims(::Transform{From, To, R}) where {From, To, R} = From
 @inline todims(::Transform{From, To, R}) where {From, To, R} = To
 @inline eltype(::Transform{From, To, R}) where {From, To, R} = R

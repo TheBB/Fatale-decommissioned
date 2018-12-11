@@ -3,10 +3,13 @@ module Elements
 using FastGaussQuadrature
 using StaticArrays
 using ..Utils
+using ..Transforms
 
 import Base.Iterators: product
+import ..Transforms: fromdims, todims
 
 export Simplex, Tensor
+export Element, FullElement, SubElement
 export quadrule
 
 
@@ -52,6 +55,24 @@ function quadrule(self::Tensor{D}, npts::Int) where {D}
     rwts = vec(outer(wts...))
     rpts = vec(SVector{D, Float64}[SVector(vcat(p...)) for p in product(pts...)])
     (rpts, rwts)
+end
+
+
+abstract type Element{D} end
+
+struct FullElement{D, Trf<:Transform} <: Element{D}
+    transform :: Trf
+end
+
+@generated function FullElement(trf)
+    @assert trf <: Transform
+    @assert fromdims(trf) == todims(trf)
+    :(FullElement{$(fromdims(trf)),$trf}(trf))
+end
+
+struct SubElement{D, Trf<:Transform, Parent<:Element} <: Element{D}
+    transform :: Trf
+    parent :: Parent
 end
 
 end
