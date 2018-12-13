@@ -7,6 +7,7 @@ using Test
 using Fatale.Transforms
 using Fatale.Elements
 using Fatale.Domains
+using Fatale.Evaluables
 
 
 @testset "Transforms" begin
@@ -19,6 +20,10 @@ end
 
 @testset "Domain" begin
     include("Domains.jl")
+end
+
+@testset "Evaluables" begin
+    include("Evaluables.jl")
 end
 
 @testset "Allocs" begin
