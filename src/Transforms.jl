@@ -4,7 +4,7 @@ using LinearAlgebra
 using StaticArrays
 
 export Transform
-export Chain, Updim, Shift
+export Empty, Chain, Updim, Shift
 export apply, applygrad
 
 
@@ -22,6 +22,15 @@ abstract type Transform{From, To, R<:Real} end
 @inline fromdims(::Transform{From, To, R}) where {From, To, R} = From
 @inline todims(::Transform{From, To, R}) where {From, To, R} = To
 @inline eltype(::Transform{From, To, R}) where {From, To, R} = R
+
+
+"""
+    Empty{D,R}()
+
+A D-dimensional transform that does nothing.
+"""
+struct Empty{D, R<:Real} <: Transform{D, D, R} end
+codegen(::Type{<:Empty}, trf, point, grad) = (point, grad)
 
 
 """
@@ -46,10 +55,6 @@ end
         Chain{Tuple{$(trfs...)}, $from, $to, $R}(trfs)
     end
 end
-
-# @inline function Chain(trfs...)
-#     Chain{typeof(trfs), fromdims(trfs[1]), todims(trfs[end]), eltype(trfs[1])}(trfs)
-# end
 
 function codegen(::Type{Chain{K, From, To, R}}, trf, point, grad) where {K, From, To, R}
     ptcodes, gradcodes = Expr[], Expr[]
@@ -144,6 +149,5 @@ well as the gradient of the mapping.
         return ($ptcode, $gradcode) :: Tuple{SVector{$To,$R}, SMatrix{$To,$To,$R}}
     end
 end
-
 
 end
