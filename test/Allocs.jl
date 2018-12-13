@@ -48,3 +48,27 @@ end
 @testset "Domains" begin
     @checkallocs iterdomain()
 end
+
+
+@testset "LocalCoords" begin
+    func = compile(LocalCoords{2, Float64}())
+    element = FullElement(Shift(@SVector rand(2)))
+    quadpt = @SVector rand(2)
+
+    # TODO: Why can't I checkallocs this?
+    func(element, quadpt)
+    trial = @benchmark $func($element, $quadpt) samples=1 evals=1
+    @test trial.allocs == 0
+end
+
+
+@testset "GlobalCoords" begin
+    func = compile(GlobalCoords{3, Float64}())
+    element = SubElement(Updim{1,3}(4.0), FullElement(Shift(@SVector rand(3))))
+    quadpt = @SVector rand(2)
+
+    # TODO: Why can't I checkallocs this?
+    func(element, quadpt)
+    trial = @benchmark $func($element, $quadpt) samples=1 evals=1
+    @test trial.allocs == 0
+end
