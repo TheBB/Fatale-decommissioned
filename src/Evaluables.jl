@@ -1,5 +1,6 @@
 module Evaluables
 
+using DataStructures
 using StaticArrays
 using ..Elements
 

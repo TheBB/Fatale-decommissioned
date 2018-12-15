@@ -6,15 +6,19 @@ of type T.
 """
 abstract type Evaluable{T} end
 
+arguments(::Evaluable) = Evaluable[]
+storage(::Evaluable) = Tuple{Symbol,Expr}[]
+
+
 
 """
-    ArrayEvaluable{S, T, N, L} <: Evaluable{SArray{S, T, N, L}}
+    ArrayEvaluable{S, T, N, L} <: Evaluable{MArray{S, T, N, L}}
 
 Abstract type representing any function that, when evaluated, produces a static
-array value. The type parameters correspond to those of the SArray type: size,
+array value. The type parameters correspond to those of the MArray type: size,
 element type, number of dimensions and total length.
 """
-const ArrayEvaluable{S, T, N, L} = Evaluable{SArray{S, T, N, L}}
+const ArrayEvaluable{S, T, N, L} = Evaluable{MArray{S, T, N, L}}
 
 
 """
