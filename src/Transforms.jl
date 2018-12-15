@@ -5,7 +5,7 @@ using StaticArrays
 
 export Transform
 export Empty, Chain, Updim, Shift
-export apply, applygrad
+export apply!
 
 
 """
@@ -30,7 +30,7 @@ abstract type Transform{From, To, R<:Real} end
 A D-dimensional transform that does nothing.
 """
 struct Empty{D, R<:Real} <: Transform{D, D, R} end
-codegen(::Type{<:Empty}, trf, point, grad) = (point, grad)
+codegen(::Type{<:Empty}, trf, rest...) = :()
 
 
 """
@@ -56,18 +56,14 @@ end
     end
 end
 
-function codegen(::Type{Chain{K, From, To, R}}, trf, point, grad) where {K, From, To, R}
-    ptcodes, gradcodes = Expr[], Expr[]
-
-    for (i, subtrf) in enumerate(K.parameters)
-        (ptcode, gradcode) = codegen(subtrf, :($trf.chain[$i]), point, grad)
-        point = gensym("point")
-        grad = gensym("grad")
-        push!(ptcodes, :($point = $ptcode))
-        push!(gradcodes, :($grad = $gradcode))
+function codegen(::Type{<:Chain{K}}, trf, rest...) where {K}
+    codes = [
+        codegen(subtrf, :($trf.chain[$i]), rest...)
+        for (i, subtrf) in enumerate(K.parameters)
+    ]
+    quote
+        $(codes...)
     end
-
-    (:($(ptcodes...); $point), :($(gradcodes...); $grad))
 end
 
 
@@ -89,28 +85,37 @@ end
 
 @inline Updim{Ins, To}(data) where {Ins, To} = Updim{Ins, To, typeof(data)}(data)
 
-function codegen(tp::Type{Updim{Ins, From, To, R}}, trf, point, grad) where {Ins, From, To, R}
-    exprs = Expr[:($point[$i]) for i in 1:From]
-    insert!(exprs, Ins, :($trf.data))
-
-    cols = [[:($grad[$i,$j]) for i in 1:From] for j in 1:From]
-    for col in cols
-        insert!(col, Ins, :(zero($R)))
+function codegen(tp::Type{Updim{Ins, From, To, R}}, trf, point) where {Ins, From, To, R}
+    dst = Ins+1 : To
+    src = Ins : To-1
+    quote
+        $point[@SVector(Int[$(dst...)])] .= $point[@SVector(Int[$(src...)])]
+        $point[$Ins] = $trf.data
     end
+end
+
+function codegen(tp::Type{Updim{Ins, From, To, R}}, trf, point, grad) where {Ins, From, To, R}
+    src_cols = [[:($grad[$i,$j]) for i in 1:To] for j in 1:From]
 
     if To == 1
-        push!(cols, [:(one($R))])
+        new_col = [:(one($R))]
     elseif To == 2
-        ((a, b),) = cols
-        push!(cols, [b, :(-$a)])
+        ((a, b),) = src_cols
+        new_col = [b, :(-$a)]
     elseif To == 3
-        ((a, c, e), (b, d, f)) = cols
-        push!(cols, [:($c*$f - $e*$d), :($e*$b - $a*$f), :($a*$d - $c*$b)])
+        ((a, c, e), (b, d, f)) = src_cols
+        new_col = [:($c*$f - $e*$d), :($e*$b - $a*$f), :($a*$d - $c*$b)]
     end
 
-    ptcode = :(SVector{$To,$R}($(exprs...)))
-    gradcode = :(SMatrix{$To,$To,$R}($(Iterators.flatten(cols)...)))
-    (ptcode, gradcode)
+    dst = Ins+1 : To
+    src = Ins : To-1
+
+    quote
+        $grad[@SVector(Int[$(dst...)]), :] .= $grad[@SVector(Int[$(src...)]), :]
+        $grad[$Ins, :] = zero($R)
+        $grad[:, $To] .= @SVector([$(new_col...)])
+        $(codegen(tp, trf, point))
+    end
 end
 
 
@@ -123,31 +128,20 @@ struct Shift{D,R} <: Transform{D,D,R}
     data :: SVector{D,R}
 end
 
-codegen(tp::Type{<:Shift}, trf, point, grad) = (:($point + $trf.data), grad)
+codegen(tp::Type{<:Shift}, trf, point, rest...) = :($point .+= $trf.data)
 
 
 """
-    apply(trf::Transform, x::SVector) :: SVector
+    apply!(trf::Transform, x::MVector, [J::MMatrix])
 
-Apply the transform `trf` to the vector `x` and return the result.
+Apply the transform `trf` to the vector `x` and the derivative `J` in-place.
 """
-@generated function apply(trf::Transform{From,To,R}, point::SVector{From,R}) where {From,To,R}
-    (ptcode, _) = codegen(trf, :trf, :point, :grad)
-    :(return $ptcode :: SVector{$To,$R})
+@generated function apply!(trf::Transform{From,To,R}, point::MVector{To,R}) where {From,To,R}
+    codegen(trf, :trf, :point)
 end
 
-"""
-    applygrad(trf::Transform, x::SVector) :: Tuple{SVector, SMatrix}
-
-Apply the transform `trf` to the vector `x` and return the resulting vector, as
-well as the gradient of the mapping.
-"""
-@generated function applygrad(trf::Transform{From,To,R}, point::SVector{From,R}) where {From,To,R}
-    (ptcode, gradcode) = codegen(trf, :trf, :point, :grad)
-    quote
-        grad = SMatrix{$From,$From,$R}(I)
-        return ($ptcode, $gradcode) :: Tuple{SVector{$To,$R}, SMatrix{$To,$To,$R}}
-    end
+@generated function apply!(trf::Transform{From,To,R}, point::MVector{To,R}, grad::MMatrix{To,To,R}) where {From,To,R}
+    codegen(trf, :trf, :point, :grad)
 end
 
 end
