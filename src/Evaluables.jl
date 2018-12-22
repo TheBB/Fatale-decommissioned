@@ -1,7 +1,9 @@
 module Evaluables
 
 using DataStructures
+using LinearAlgebra
 using StaticArrays
+
 using ..Transforms
 using ..Elements
 

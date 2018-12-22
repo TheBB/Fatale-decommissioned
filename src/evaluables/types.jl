@@ -55,6 +55,15 @@ of size M x N with elements of type T.
 const MatrixEvaluable{M, N, T, L} = ArrayEvaluable{Tuple{M,N}, T, 2, L}
 
 
+"""
+    SquareMatrixEvaluable{N, T} <: MatrixEvaluable
+
+Abstract type representing any function that, when evaluated, returns a square
+matrix of size N x N with elements of type T.
+"""
+const SquareMatrixEvaluable{N, T, L} = MatrixEvaluable{N, N, T, L}
+
+
 struct Storage{T,A<:Tuple}
     mine :: T
     args :: A

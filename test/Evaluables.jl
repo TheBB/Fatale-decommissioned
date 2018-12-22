@@ -4,15 +4,15 @@
 
     element = FullElement(Shift(@SVector rand(2)))
     quadpt = @SVector rand(2)
-    @test evaluate(func, element, quadpt) == quadpt
+    @test evaluate(func, element, quadpt)[1] == quadpt
 
     sub = SubElement(Updim{1,2}(5.0), element)
     quadpt = @SVector rand(1)
-    @test evaluate(func, sub, quadpt) == [5.0, quadpt[1]]
+    @test evaluate(func, sub, quadpt)[1] == [5.0, quadpt[1]]
 
     sub = SubElement(Updim{2,2}(5.0), element)
     quadpt = @SVector rand(1)
-    @test evaluate(func, sub, quadpt) == [quadpt[1], 5.0]
+    @test evaluate(func, sub, quadpt)[1] == [quadpt[1], 5.0]
 end
 
 
@@ -23,13 +23,13 @@ end
 
     element = FullElement(Shift(shift))
     quadpt = @SVector rand(2)
-    @test evaluate(func, element, quadpt) ≈ quadpt + shift
+    @test evaluate(func, element, quadpt)[1] ≈ quadpt + shift
 
     sub = SubElement(Updim{1,2}(4.0), element)
     quadpt = @SVector rand(1)
-    @test evaluate(func, sub, quadpt) ≈ [4.0, quadpt[1]] + shift
+    @test evaluate(func, sub, quadpt)[1] ≈ [4.0, quadpt[1]] + shift
 
     sub = SubElement(Updim{2,2}(4.0), element)
     quadpt = @SVector rand(1)
-    @test evaluate(func, sub, quadpt) ≈ [quadpt[1], 4.0] + shift
+    @test evaluate(func, sub, quadpt)[1] ≈ [quadpt[1], 4.0] + shift
 end
