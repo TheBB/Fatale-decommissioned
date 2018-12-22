@@ -4,14 +4,13 @@
 Function returning the local (reference) coordinates of the quadrature point.
 """
 struct LocalCoords{N,T} <: VectorEvaluable{N,T} end
-storage(::LocalCoords{N,T}) where {N,T} = (point = :(MVector{$N,$T}(undef)),)
 
-function codegen(::LocalCoords; point)
-    quote
-        $point[1:length(quadpt)] .= quadpt
-        apply!(dimtrans(element), $point)
-        $point
-    end
+_storage(::LocalCoords{N,T}) where {N,T} = MVector{N,T}(undef)
+
+function (::LocalCoords{N,T})(element, quadpt::SVector{M}, storage) where {M,N,T}
+    storage.mine[1:M] .= quadpt
+    apply!(dimtrans(element), storage.mine)
+    storage.mine
 end
 
 
@@ -21,12 +20,11 @@ end
 Function returning the global (physical) coordinates of the quadrature point.
 """
 struct GlobalCoords{N,T} <: VectorEvaluable{N,T} end
-storage(::GlobalCoords{N,T}) where {N,T} = (point = :(MVector{$N,$T}(undef)),)
 
-function codegen(::GlobalCoords; point)
-    quote
-        $point[1:length(quadpt)] .= quadpt
-        apply!(globtrans(element), $point)
-        $point
-    end
+_storage(::GlobalCoords{N,T}) where {N,T} = MVector{N,T}(undef)
+
+function (::GlobalCoords{N,T})(element, quadpt::SVector{M}, storage) where {M,N,T}
+    storage.mine[1:M] .= quadpt
+    apply!(globtrans(element), storage.mine)
+    storage.mine
 end

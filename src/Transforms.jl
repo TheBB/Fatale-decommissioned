@@ -86,10 +86,11 @@ end
 @inline Updim{Ins, To}(data) where {Ins, To} = Updim{Ins, To, typeof(data)}(data)
 
 function codegen(tp::Type{Updim{Ins, From, To, R}}, trf, point) where {Ins, From, To, R}
-    dst = Ins+1 : To
-    src = Ins : To-1
+    dst = reverse(Ins+1 : To)
+    src = reverse(Ins : To-1)
+    shifts = [:($point[$d] = $point[$s]) for (d,s) in zip(dst, src)]
     quote
-        $point[@SVector(Int[$(dst...)])] .= $point[@SVector(Int[$(src...)])]
+        $(shifts...)
         $point[$Ins] = $trf.data
     end
 end

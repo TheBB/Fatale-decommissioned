@@ -7,8 +7,10 @@ of type T.
 abstract type Evaluable{T} end
 
 arguments(::Evaluable) = Evaluable[]
-storage(::Evaluable) = Tuple{Symbol,Expr}[]
 
+function storage(self::Evaluable)
+    Storage(_storage(self), Tuple(storage(arg) for arg in arguments(self)))
+end
 
 
 """
@@ -46,3 +48,9 @@ Abstract type representing any function that, when evaluated, returns a matrix
 of size M x N with elements of type T.
 """
 const MatrixEvaluable{M, N, T, L} = ArrayEvaluable{Tuple{M,N}, T, 2, L}
+
+
+struct Storage{T,A<:Tuple}
+    mine :: T
+    args :: A
+end
