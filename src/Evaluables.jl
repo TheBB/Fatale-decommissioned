@@ -6,7 +6,7 @@ using ..Transforms
 using ..Elements
 
 export LocalCoords, GlobalCoords
-export storage
+export evaluate, storage
 
 include("evaluables/types.jl")
 include("evaluables/definitions.jl")

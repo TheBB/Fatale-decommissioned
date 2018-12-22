@@ -7,7 +7,7 @@ struct LocalCoords{N,T} <: VectorEvaluable{N,T} end
 
 _storage(::LocalCoords{N,T}) where {N,T} = MVector{N,T}(undef)
 
-function (::LocalCoords{N,T})(element, quadpt::SVector{M}, storage) where {M,N,T}
+function evaluate(::LocalCoords{N,T}, element, quadpt::SVector{M}, storage) where {M,N,T}
     storage.mine[1:M] .= quadpt
     apply!(dimtrans(element), storage.mine)
     storage.mine
@@ -23,7 +23,7 @@ struct GlobalCoords{N,T} <: VectorEvaluable{N,T} end
 
 _storage(::GlobalCoords{N,T}) where {N,T} = MVector{N,T}(undef)
 
-function (::GlobalCoords{N,T})(element, quadpt::SVector{M}, storage) where {M,N,T}
+function evaluate(::GlobalCoords{N,T}, element, quadpt::SVector{M}, storage) where {M,N,T}
     storage.mine[1:M] .= quadpt
     apply!(globtrans(element), storage.mine)
     storage.mine

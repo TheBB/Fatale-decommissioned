@@ -12,6 +12,11 @@ function storage(self::Evaluable)
     Storage(_storage(self), Tuple(storage(arg) for arg in arguments(self)))
 end
 
+function evaluate(self::Evaluable, element, quadpt)
+    st = storage(self)
+    evaluate(self, element, quadpt, st)
+end
+
 
 """
     ArrayEvaluable{S, T, N, L} <: Evaluable{MArray{S, T, N, L}}
