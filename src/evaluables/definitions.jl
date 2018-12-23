@@ -10,7 +10,8 @@ const CoordsType{N,T,L} = NamedTuple{
 Function returning the local (reference) coordinates of the quadrature point.
 """
 struct LocalCoords{N,T,L} <: Evaluable{CoordsType{N,T,L}}
-    LocalCoords{N,T}() where {N,T} = new{N,T,N*N}()
+    LocalCoords(N) = new{N, Float64, N*N}()
+    LocalCoords(N, T) = new{N, T, N*N}()
 end
 
 storage(::LocalCoords{N,T}) where {N,T} = (
@@ -32,7 +33,8 @@ end
 Function returning the global (physical) coordinates of the quadrature point.
 """
 struct GlobalCoords{N,T,L} <: Evaluable{CoordsType}
-    GlobalCoords{N,T}() where {N,T} = new{N,T,N*N}()
+    GlobalCoords(N) = new{N, Float64, N*N}()
+    GlobalCoords(N, T) = new{N, T, N*N}()
 end
 
 storage(::GlobalCoords{N,T}) where {N,T} = (

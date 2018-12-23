@@ -1,6 +1,6 @@
 @testset "LocalCoords" begin
     Random.seed!(201812131215)
-    func = compile(LocalCoords{2,Float64}())
+    func = compile(LocalCoords(2))
 
     element = FullElement(Shift(@SVector rand(2)))
     quadpt = @SVector rand(2)
@@ -18,7 +18,7 @@ end
 
 @testset "GlobalCoords" begin
     Random.seed!(201812131219)
-    func = compile(GlobalCoords{2,Float64}())
+    func = compile(GlobalCoords(2))
     shift = @SVector rand(2)
 
     element = FullElement(Shift(shift))
