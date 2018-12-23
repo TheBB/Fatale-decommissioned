@@ -7,10 +7,11 @@ using StaticArrays
 using ..Transforms
 using ..Elements
 
-export LocalCoords, GlobalCoords
-export evaluate, storage
+export LocalCoords, GlobalCoords, GlobalPoint
+export compile, storage
 
 include("evaluables/types.jl")
 include("evaluables/definitions.jl")
+include("evaluables/compilation.jl")
 
 end

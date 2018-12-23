@@ -13,16 +13,16 @@ struct LocalCoords{N,T,L} <: Evaluable{CoordsType{N,T,L}}
     LocalCoords{N,T}() where {N,T} = new{N,T,N*N}()
 end
 
-_storage(::LocalCoords{N,T}) where {N,T} = (
+storage(::LocalCoords{N,T}) where {N,T} = (
     point = MVector{N,T}(undef),
     grad = MMatrix{N,N,T}(undef),
 )
 
-function evaluate(::LocalCoords{N}, element, quadpt::SVector{M}, storage) where {M,N}
-    storage.mine.point[1:M] .= quadpt
-    storage.mine.grad .= Matrix{Float64}(I, N, N)
-    apply!(dimtrans(element), storage.mine.point, storage.mine.grad)
-    storage.mine
+function (::LocalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
+    st.point[1:M] .= quadpt
+    st.grad .= Matrix{Float64}(I, N, N)
+    apply!(dimtrans(element), st.point, st.grad)
+    st
 end
 
 
@@ -35,14 +35,14 @@ struct GlobalCoords{N,T,L} <: Evaluable{CoordsType}
     GlobalCoords{N,T}() where {N,T} = new{N,T,N*N}()
 end
 
-_storage(::GlobalCoords{N,T}) where {N,T} = (
+storage(::GlobalCoords{N,T}) where {N,T} = (
     point = MVector{N,T}(undef),
     grad = MMatrix{N,N,T}(undef),
 )
 
-function evaluate(::GlobalCoords{N}, element, quadpt::SVector{M}, storage) where {M,N}
-    storage.mine.point[1:M] .= quadpt
-    storage.mine.grad .= Matrix{Float64}(I, N, N)
-    apply!(globtrans(element), storage.mine.point, storage.mine.grad)
-    storage.mine
+function (::GlobalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
+    st.point[1:M] .= quadpt
+    st.grad .= Matrix{Float64}(I, N, N)
+    apply!(globtrans(element), st.point, st.grad)
+    st
 end

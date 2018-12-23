@@ -7,15 +7,7 @@ of type T.
 abstract type Evaluable{T} end
 
 arguments(::Evaluable) = Evaluable[]
-
-function storage(self::Evaluable)
-    Storage(_storage(self), Tuple(storage(arg) for arg in arguments(self)))
-end
-
-function evaluate(self::Evaluable, element, quadpt)
-    st = storage(self)
-    evaluate(self, element, quadpt, st)
-end
+storage(::Evaluable) = nothing
 
 
 """
@@ -62,9 +54,3 @@ Abstract type representing any function that, when evaluated, returns a square
 matrix of size N x N with elements of type T.
 """
 const SquareMatrixEvaluable{N, T, L} = MatrixEvaluable{N, N, T, L}
-
-
-struct Storage{T,A<:Tuple}
-    mine :: T
-    args :: A
-end
