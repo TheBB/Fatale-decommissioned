@@ -13,5 +13,6 @@ export compile, storage
 include("evaluables/types.jl")
 include("evaluables/definitions.jl")
 include("evaluables/compilation.jl")
+include("evaluables/utility.jl")
 
 end

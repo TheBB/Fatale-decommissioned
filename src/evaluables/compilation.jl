@@ -1,6 +1,5 @@
 struct CompiledEvaluable{T, I, K} <: Evaluable{T}
     funcs :: K
-
     CompiledEvaluable{T,I}(funcs::K) where {T,I,K} = new{T,I,K}(funcs)
 end
 

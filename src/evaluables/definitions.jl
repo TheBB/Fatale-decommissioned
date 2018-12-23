@@ -32,7 +32,7 @@ end
 
 Function returning the global (physical) coordinates of the quadrature point.
 """
-struct GlobalCoords{N,T,L} <: Evaluable{CoordsType}
+struct GlobalCoords{N,T,L} <: Evaluable{CoordsType{N,T,L}}
     GlobalCoords(N) = new{N, Float64, N*N}()
     GlobalCoords(N, T) = new{N, T, N*N}()
 end
@@ -48,3 +48,18 @@ function (::GlobalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
     apply!(globtrans(element), st.point, st.grad)
     st
 end
+
+
+"""
+    GetProperty{T,S}
+
+Function accessing a field named S of type T.
+"""
+struct GetProperty{T,S,A} <: Evaluable{T}
+    arg :: A
+    GetProperty{T,S}(arg::A) where {T,S,A} = new{T,S,A}(arg)
+end
+
+arguments(self::GetProperty) = [self.arg]
+
+@generated (::GetProperty{T,S})(element, quadpt, arg) where {T,S} = :(arg.$S)
