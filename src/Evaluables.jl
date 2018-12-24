@@ -9,6 +9,7 @@ using StaticArrays
 using ..Transforms
 using ..Elements
 
+export Monomials
 export localpoint, localgrad, globalpoint, globalgrad
 export compile, storage
 

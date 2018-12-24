@@ -70,3 +70,27 @@ arguments(self::GetProperty) = [self.arg]
         arg.$S
     end
 end
+
+
+struct Monomials{D, In, Out} <: Evaluable{Out}
+    arg :: In
+
+    function Monomials(arg::ArrayEvaluable{S,T}, degree::Int) where {S,T}
+        NewS = Tuple{S.parameters..., degree+1}
+        Out = MArray{NewS, T, length(NewS.parameters), prod(NewS.parameters)}
+        new{degree, typeof(arg), Out}(arg)
+    end
+end
+
+arguments(self::Monomials) = [self.arg]
+
+storage(::Monomials{D,In,Out}) where {D,In,Out} = Out(undef)
+
+@generated function (::Monomials{D})(_, _, st, arg) where {D}
+    codes = [:(st[:,$(i+1)] .= st[:,$i] .* arg) for i in 1:D]
+    quote
+        st[:,1] .= 1
+        $(codes...)
+        st
+    end
+end
