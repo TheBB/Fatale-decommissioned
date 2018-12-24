@@ -94,6 +94,6 @@ end
 @inline dimtrans(self::SubElement) = self.transform
 
 @inline globtrans(self::FullElement) = self.transform
-@inline globtrans(self::SubElement) = Chain(self.transform, globtrans(self.parent))
+@inline globtrans(self::SubElement) = globtrans(self.parent)
 
 end

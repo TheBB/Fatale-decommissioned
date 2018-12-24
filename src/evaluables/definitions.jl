@@ -37,14 +37,16 @@ struct GlobalCoords{N,T,L} <: Evaluable{CoordsType{N,T,L}}
     GlobalCoords(N, T) = new{N, T, N*N}()
 end
 
+arguments(::GlobalCoords{N,T}) where {N,T} = [LocalCoords(N,T)]
+
 storage(::GlobalCoords{N,T}) where {N,T} = (
     point = MVector{N,T}(undef),
     grad = MMatrix{N,N,T}(undef),
 )
 
-function (::GlobalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
-    st.point[1:M] .= quadpt
-    st.grad .= Matrix{Float64}(I, N, N)
+function (::GlobalCoords{N})(element, quadpt::SVector{M}, st, loc) where {M,N}
+    st.point .= loc.point
+    st.grad .= loc.grad
     apply!(globtrans(element), st.point, st.grad)
     st
 end
