@@ -21,7 +21,7 @@ storage(::LocalCoords{N,T}) where {N,T} = (
 
 function (::LocalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
     st.point[1:M] .= quadpt
-    st.grad .= Matrix{Float64}(I, N, N)
+    st.grad .= SMatrix{N,N,Float64}(I)
     apply!(dimtrans(element), st.point, st.grad)
     st
 end
