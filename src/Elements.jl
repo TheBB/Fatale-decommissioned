@@ -91,7 +91,7 @@ end
 end
 
 @inline dimtrans(::FullElement{D}) where {D} = Empty{D,Float64}()
-@inline dimtrans(self::SubElement) = self.transform
+@inline dimtrans(self::SubElement) = Chain(self.transform, dimtrans(self.parent))
 
 @inline globtrans(self::FullElement) = self.transform
 @inline globtrans(self::SubElement) = globtrans(self.parent)
