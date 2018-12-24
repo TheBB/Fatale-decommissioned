@@ -19,7 +19,7 @@ storage(::LocalCoords{N,T}) where {N,T} = (
     grad = MMatrix{N,N,T}(undef),
 )
 
-function (::LocalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
+@inline function (::LocalCoords{N})(element, quadpt::SVector{M}, st) where {M,N}
     st.point[1:M] .= quadpt
     st.grad .= SMatrix{N,N,Float64}(I)
     apply!(dimtrans(element), st.point, st.grad)
@@ -44,7 +44,7 @@ storage(::GlobalCoords{N,T}) where {N,T} = (
     grad = MMatrix{N,N,T}(undef),
 )
 
-function (::GlobalCoords{N})(element, quadpt::SVector{M}, st, loc) where {M,N}
+@inline function (::GlobalCoords{N})(element, quadpt::SVector{M}, st, loc) where {M,N}
     st.point .= loc.point
     st.grad .= loc.grad
     apply!(globtrans(element), st.point, st.grad)
@@ -64,4 +64,9 @@ end
 
 arguments(self::GetProperty) = [self.arg]
 
-@generated (::GetProperty{T,S})(element, quadpt, arg) where {T,S} = :(arg.$S)
+@generated function (::GetProperty{T,S})(element, quadpt, arg) where {T,S}
+    quote
+        $(Expr(:meta, :inline))
+        arg.$S
+    end
+end
