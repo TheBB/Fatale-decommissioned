@@ -44,7 +44,7 @@ storage(::GlobalCoords{N,T}) where {N,T} = (
     grad = MMatrix{N,N,T}(undef),
 )
 
-@inline function (::GlobalCoords{N})(element, quadpt::SVector{M}, st, loc) where {M,N}
+@inline function (::GlobalCoords)(element, _, st, loc)
     st.point .= loc.point
     st.grad .= loc.grad
     apply!(globtrans(element), st.point, st.grad)
@@ -53,7 +53,7 @@ end
 
 
 """
-    GetProperty{T,S}
+    GetProperty{T, S}
 
 Function accessing a field named S of type T.
 """
@@ -64,7 +64,7 @@ end
 
 arguments(self::GetProperty) = [self.arg]
 
-@generated function (::GetProperty{T,S})(element, quadpt, arg) where {T,S}
+@generated function (::GetProperty{T,S})(_, _, arg) where {T,S}
     quote
         @_inline_meta
         arg.$S
