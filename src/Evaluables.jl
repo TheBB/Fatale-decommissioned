@@ -1,5 +1,7 @@
 module Evaluables
 
+import Base: @_inline_meta
+
 using DataStructures
 using LinearAlgebra
 using StaticArrays

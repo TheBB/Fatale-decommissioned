@@ -1,5 +1,7 @@
 module Transforms
 
+import Base: @_inline_meta
+
 using LinearAlgebra
 using StaticArrays
 
@@ -51,7 +53,7 @@ end
     @assert all(todims(prev) == fromdims(next)
                 for (prev, next) in zip(trfs[1:end-1], trfs[2:end]))
     quote
-        $(Expr(:meta, :inline))
+        @_inline_meta
         Chain{Tuple{$(trfs...)}, $from, $to, $R}(trfs)
     end
 end
@@ -138,11 +140,17 @@ codegen(tp::Type{<:Shift}, trf, point, rest...) = :($point .+= $trf.data)
 Apply the transform `trf` to the vector `x` and the derivative `J` in-place.
 """
 @generated function apply!(trf::Transform{From,To,R}, point::MVector{To,R}) where {From,To,R}
-    codegen(trf, :trf, :point)
+    quote
+        @_inline_meta
+        $(codegen(trf, :trf, :point))
+    end
 end
 
 @generated function apply!(trf::Transform{From,To,R}, point::MVector{To,R}, grad::MMatrix{To,To,R}) where {From,To,R}
-    codegen(trf, :trf, :point, :grad)
+    quote
+        @_inline_meta
+        $(codegen(trf, :trf, :point, :grad))
+    end
 end
 
 end

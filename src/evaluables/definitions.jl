@@ -66,7 +66,7 @@ arguments(self::GetProperty) = [self.arg]
 
 @generated function (::GetProperty{T,S})(element, quadpt, arg) where {T,S}
     quote
-        $(Expr(:meta, :inline))
+        @_inline_meta
         arg.$S
     end
 end
