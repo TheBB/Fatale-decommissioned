@@ -72,6 +72,11 @@ arguments(self::GetProperty) = [self.arg]
 end
 
 
+"""
+    Monomials{D}
+
+Computes all monomials of the input up to degree D.
+"""
 struct Monomials{D, In, Out} <: Evaluable{Out}
     arg :: In
 
