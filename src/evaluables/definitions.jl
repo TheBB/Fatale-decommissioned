@@ -86,10 +86,11 @@ arguments(self::Monomials) = [self.arg]
 
 storage(::Monomials{D,In,Out}) where {D,In,Out} = Out(undef)
 
-@generated function (::Monomials{D})(_, _, st, arg) where {D}
-    codes = [:(st[:,$(i+1)] .= st[:,$i] .* arg) for i in 1:D]
+@generated function (self::Monomials{D})(_, _, st, arg) where {D}
+    colons = [Colon() for _ in 1:ndims(self)-1]
+    codes = [:(st[$(colons...), $(i+1)] .= st[$(colons...), $i] .* arg) for i in 1:D]
     quote
-        st[:,1] .= 1
+        st[$(colons...), 1] .= 1
         $(codes...)
         st
     end

@@ -1,3 +1,12 @@
+Base.eltype(::Type{<:ArrayEvaluable{S, T}}) where {S, T} = T
+Base.ndims(::Type{<:ArrayEvaluable{S, T, N}}) where {S, T, N} = N
+Base.size(::Type{<:ArrayEvaluable{S}}) where {S} = Tuple(S.parameters...)
+
+Base.eltype(::ArrayEvaluable{S, T}) where {S, T} = T
+Base.ndims(::ArrayEvaluable{S, T, N}) where {S, T, N} = N
+Base.size(::ArrayEvaluable{S}) where {S} = Tuple(S.parameters...)
+
+
 function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     index = findfirst(x->x==v, T.parameters[1])
     index == nothing && return getfield(self, v)
