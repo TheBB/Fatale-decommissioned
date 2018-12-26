@@ -88,7 +88,7 @@ end
 
 arguments(self::Monomials) = [self.arg]
 
-storage(::Monomials{D,In,Out}) where {D,In,Out} = Out(undef)
+storage(self::Monomials) = restype(self)(undef)
 
 @generated function (self::Monomials{D})(_, _, st, arg) where {D}
     colons = [Colon() for _ in 1:ndims(self)-1]
