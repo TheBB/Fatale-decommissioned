@@ -8,6 +8,8 @@ Base.ndims(::ArrayEvaluable{S, T, N}) where {S, T, N} = N
 Base.size(::ArrayEvaluable{S}) where {S} = Tuple(S.parameters)
 Base.size(::ArrayEvaluable{S}, i) where {S} = S.parameters[i]
 
+marray(size, eltype) = MArray{Tuple{size...}, eltype, length(size), prod(size)}
+
 
 function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     index = findfirst(x->x==v, T.parameters[1])

@@ -82,8 +82,7 @@ struct Monomials{D, In, Out} <: Evaluable{Out}
 
     function Monomials(arg::ArrayEvaluable, degree::Int)
         newsize = (size(arg)..., degree + 1)
-        Out = MArray{Tuple{newsize...}, eltype(arg), length(newsize), prod(newsize)}
-        new{degree, restype(arg), Out}(arg)
+        new{degree, restype(arg), marray(newsize, eltype(arg))}(arg)
     end
 end
 
