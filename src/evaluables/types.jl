@@ -6,6 +6,7 @@ of type T.
 """
 abstract type Evaluable{T} end
 
+restype(::Evaluable{T}) where {T} = T
 arguments(::Evaluable) = Evaluable[]
 storage(::Evaluable) = nothing
 

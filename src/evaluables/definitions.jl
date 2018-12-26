@@ -78,12 +78,12 @@ end
 Computes all monomials of the input up to degree D.
 """
 struct Monomials{D, In, Out} <: Evaluable{Out}
-    arg :: In
+    arg :: Evaluable{In}
 
-    function Monomials(arg::ArrayEvaluable{S,T}, degree::Int) where {S,T}
-        NewS = Tuple{S.parameters..., degree+1}
-        Out = MArray{NewS, T, length(NewS.parameters), prod(NewS.parameters)}
-        new{degree, typeof(arg), Out}(arg)
+    function Monomials(arg::ArrayEvaluable, degree::Int)
+        newsize = (size(arg)..., degree + 1)
+        Out = MArray{Tuple{newsize...}, eltype(arg), length(newsize), prod(newsize)}
+        new{degree, restype(arg), Out}(arg)
     end
 end
 
