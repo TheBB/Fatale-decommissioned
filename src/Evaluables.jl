@@ -1,6 +1,7 @@
 module Evaluables
 
 import Base: @_inline_meta
+import Base.Iterators: flatten, product
 
 using DataStructures
 using LinearAlgebra
@@ -9,7 +10,7 @@ using StaticArrays
 using ..Transforms
 using ..Elements
 
-export Monomials
+export Constant, Contract, Monomials
 export localpoint, localgrad, globalpoint, globalgrad
 export compile, storage
 
