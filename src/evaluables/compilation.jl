@@ -3,16 +3,21 @@ struct CompiledEvaluable{T, I, K} <: Evaluable{T}
     CompiledEvaluable{T,I}(funcs::K) where {T,I,K} = new{T,I,K}(funcs)
 end
 
+struct StorageEvaluable{S, T}
+    func :: T
+    storage :: S
+end
+
+@inline (self::CompiledEvaluable)() = StorageEvaluable(self, Tuple(storage(func) for func in self.funcs))
+@inline (self::CompiledEvaluable)(element, quadpt) = self()(element, quadpt)
+@inline (self::StorageEvaluable)(element, quadpt) = self.func(element, quadpt, self.storage)
+
 function compile(self::Evaluable{T}) where {T}
     sequence = linearize(self)
     funcs = Tuple(stage.func for stage in sequence)
     Indices = Tuple{(Tuple{stage.arginds...} for stage in sequence)...}
     CompiledEvaluable{T,Indices}(funcs)
 end
-
-storage(self::CompiledEvaluable) = Tuple(storage(func) for func in self.funcs)
-
-(self::CompiledEvaluable)(element, quadpt) = self(element, quadpt, storage(self))
 
 @generated function (self::CompiledEvaluable{T,I,K})(element, quadpt, storage) where {T,I,K}
     nfuncs = length(K.parameters)
