@@ -174,3 +174,38 @@ storage(self::Contract) = restype(self)(undef)
         st
     end
 end
+
+
+"""
+    GetIndex(arg, inds...)
+
+Represents an expression arg[inds...]. Works with statically known
+integers and colons only.
+"""
+
+struct GetIndex{Inds, In, Out} <: Evaluable{Out}
+    arg :: Evaluable{In}
+
+    function GetIndex(arg::ArrayEvaluable, inds...)
+        @assert length(inds) == ndims(restype(arg))
+        @assert all(
+            isa(i, Colon) || isa(i, Integer) && 1 <= i <= s
+            for (i, s) in zip(inds, size(arg))
+        )
+
+        ressize = Tuple(s for (i, s) in zip(inds, size(arg)) if isa(i, Colon))
+        new{Tuple{inds...}, restype(arg), marray(ressize, eltype(arg))}(arg)
+    end
+end
+
+arguments(self::GetIndex) = [self.arg]
+
+storage(self::GetIndex) = restype(self)(undef)
+
+@generated function (self::GetIndex{inds})(_, _, st, arg) where {inds}
+    ret = quote
+        st .= arg[$(inds.parameters...)]
+        st
+    end
+    ret
+end

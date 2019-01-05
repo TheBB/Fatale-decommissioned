@@ -17,6 +17,8 @@ function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     GetProperty{T.parameters[2].parameters[index], v}(self)
 end
 
+Base.getindex(self::ArrayEvaluable, inds...) = GetIndex(self, inds...)
+
 
 localpoint(n) = LocalCoords(n).point
 localgrad(n) = LocalCoords(n).grad
