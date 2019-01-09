@@ -1,14 +1,15 @@
-Base.eltype(::Type{<:ArrayEvaluable{S, T}}) where {S, T} = T
-Base.ndims(::Type{<:ArrayEvaluable{S, T, N}}) where {S, T, N} = N
-Base.size(::Type{<:ArrayEvaluable{S}}) where {S} = Tuple(S.parameters)
-Base.size(::Type{<:ArrayEvaluable{S}}, i) where {S} = S.parameters[i]
+Base.eltype(::Type{<:Evaluable{T}}) where {T} = eltype(T)
+Base.ndims(::Type{<:Evaluable{T}}) where {T} = ndims(T)
+Base.size(::Type{<:Evaluable{T}}) where {T} = size(T)
+Base.size(::Type{<:Evaluable{T}}, i) where {T} = size(T, i)
 
-Base.eltype(::ArrayEvaluable{S, T}) where {S, T} = T
-Base.ndims(::ArrayEvaluable{S, T, N}) where {S, T, N} = N
-Base.size(::ArrayEvaluable{S}) where {S} = Tuple(S.parameters)
-Base.size(::ArrayEvaluable{S}, i) where {S} = S.parameters[i]
+Base.eltype(::Evaluable{T}) where {T} = eltype(T)
+Base.ndims(::Evaluable{T}) where {T} = ndims(T)
+Base.size(::Evaluable{T}) where {T} = size(T)
+Base.size(::Evaluable{T}, i) where {T} = size(T, i)
 
 marray(size, eltype) = MArray{Tuple{size...}, eltype, length(size), prod(size)}
+sarray(size, eltype) = SArray{Tuple{size...}, eltype, length(size), prod(size)}
 
 
 function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
@@ -17,7 +18,7 @@ function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     GetProperty{T.parameters[2].parameters[index], v}(self)
 end
 
-Base.getindex(self::ArrayEvaluable, inds...) = GetIndex(self, inds...)
+Base.getindex(self::Evaluable, inds...) = GetIndex(self, inds...)
 
 
 localpoint(n) = LocalCoords(n).point

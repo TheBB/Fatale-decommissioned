@@ -8,11 +8,11 @@
 
     sub = SubElement(Updim{1,2}(5.0), element)
     quadpt = @SVector rand(1)
-    @test func(sub, quadpt) == [5.0, quadpt[1]]
+    @test func(sub, quadpt) == [5.0, quadpt...]
 
     sub = SubElement(Updim{2,2}(5.0), element)
     quadpt = @SVector rand(1)
-    @test func(sub, quadpt) == [quadpt[1], 5.0]
+    @test func(sub, quadpt) == [quadpt..., 5.0]
 end
 
 

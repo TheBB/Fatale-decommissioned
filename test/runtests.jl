@@ -14,17 +14,17 @@ using Fatale.Evaluables
     include("Transforms.jl")
 end
 
-# @testset "Elements" begin
-#     include("Elements.jl")
-# end
+@testset "Elements" begin
+    include("Elements.jl")
+end
 
-# @testset "Domain" begin
-#     include("Domains.jl")
-# end
+@testset "Domain" begin
+    include("Domains.jl")
+end
 
-# @testset "Evaluables" begin
-#     include("Evaluables.jl")
-# end
+@testset "Evaluables" begin
+    include("Evaluables.jl")
+end
 
 @testset "Allocations" begin
     include("Allocs.jl")

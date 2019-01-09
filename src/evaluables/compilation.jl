@@ -3,15 +3,6 @@ struct CompiledEvaluable{T, I, K} <: Evaluable{T}
     CompiledEvaluable{T,I}(funcs::K) where {T,I,K} = new{T,I,K}(funcs)
 end
 
-struct StorageEvaluable{S, T}
-    func :: T
-    storage :: S
-end
-
-@inline (self::CompiledEvaluable)() = StorageEvaluable(self, Tuple(storage(func) for func in self.funcs))
-@inline (self::CompiledEvaluable)(element, quadpt) = self()(element, quadpt)
-@inline (self::StorageEvaluable)(element, quadpt) = self.func(element, quadpt, self.storage)
-
 function compile(self::Evaluable{T}) where {T}
     sequence = linearize(self)
     funcs = Tuple(stage.func for stage in sequence)
@@ -19,22 +10,14 @@ function compile(self::Evaluable{T}) where {T}
     CompiledEvaluable{T,Indices}(funcs)
 end
 
-@generated function (self::CompiledEvaluable{T,I,K})(element, quadpt, storage) where {T,I,K}
+@generated function (self::CompiledEvaluable{T,I,K})(element, quadpt) where {T,I,K}
     nfuncs = length(K.parameters)
     syms = [gensym() for _ in 1:nfuncs]
     argsyms = [[syms[j] for j in tp.parameters] for tp in I.parameters]
 
     codes = Expr[]
     for (i, (sym, args)) in enumerate(zip(syms, argsyms))
-        if storage.parameters[i] == Nothing
-            push!(codes, :($sym = self.funcs[$i](
-                element, quadpt, $(args...)
-            )))
-        else
-            push!(codes, :($sym = self.funcs[$i](
-                element, quadpt, storage[$i], $(args...)
-            )))
-        end
+        push!(codes, :($sym = self.funcs[$i](element, quadpt, $(args...))))
     end
 
     quote

@@ -10,7 +10,7 @@ import ..Transforms: fromdims, todims
 
 export Simplex, Tensor
 export Element, FullElement, SubElement
-export quadrule, dimtrans, globtrans
+export quadrule, loctrans, globtrans
 
 
 abstract type ReferenceElement{D} end
@@ -90,8 +90,8 @@ end
     end
 end
 
-@inline dimtrans(::FullElement{D}) where {D} = Empty{D,Float64}()
-@inline dimtrans(self::SubElement) = Chain(self.transform, dimtrans(self.parent))
+@inline loctrans(::FullElement{D}) where {D} = Empty{D,Float64}()
+@inline loctrans(self::SubElement) = Chain(self.transform, loctrans(self.parent))
 
 @inline globtrans(self::FullElement) = self.transform
 @inline globtrans(self::SubElement) = globtrans(self.parent)
