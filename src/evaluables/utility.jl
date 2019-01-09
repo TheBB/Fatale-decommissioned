@@ -8,8 +8,13 @@ Base.ndims(::Evaluable{T}) where {T} = ndims(T)
 Base.size(::Evaluable{T}) where {T} = size(T)
 Base.size(::Evaluable{T}, i) where {T} = size(T, i)
 
-marray(size, eltype) = MArray{Tuple{size...}, eltype, length(size), prod(size)}
-sarray(size, eltype) = SArray{Tuple{size...}, eltype, length(size), prod(size)}
+arraytype(::Evaluable{T}) where {T} = error("Unknown array type: $T")
+arraytype(::Evaluable{<:SArray}) = SArray
+arraytype(::Evaluable{<:MArray}) = MArray
+
+array(size, eltype, root) = root{Tuple{size...}, eltype, length(size), prod(size)}
+marray(size, eltype) = array(size, eltype, MArray)
+sarray(size, eltype) = array(size, eltype, SArray)
 
 
 function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}

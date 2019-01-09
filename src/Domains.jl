@@ -34,7 +34,7 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     # Generate N single-dimensional Lagrangian bases of the right degree
     poly = Monomials(localpoint(D), degree)
     coeffs = inv(range(0, 1, length=degree+1) .^ reshape(0:degree, 1, :))
-    coeffs = MMatrix{degree+1, degree+1}(coeffs)
+    coeffs = SMatrix{degree+1, degree+1}(coeffs)
     basis1d = Contract(poly, Constant(coeffs), (1, 2), (2, 3), (1, 3))
 
     basis1d

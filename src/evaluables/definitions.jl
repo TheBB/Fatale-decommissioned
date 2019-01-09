@@ -187,7 +187,7 @@ struct GetIndex{Inds, T} <: Evaluable{T}
         )
 
         ressize = Tuple(s for (i, s) in zip(inds, size(arg)) if isa(i, Colon))
-        rtype = marray(ressize, eltype(arg))
+        rtype = array(ressize, eltype(arg), arraytype(arg))
         new{Tuple{inds...}, rtype}(arg, rtype(undef))
     end
 end
@@ -197,7 +197,6 @@ arguments(self::GetIndex) = [self.arg]
 @generated function (self::GetIndex{inds})(_, _, arg) where {inds}
     quote
         @_inline_meta
-        self.storage .= arg[$(inds.parameters...)]
-        self.storage
+        arg[$(inds.parameters...)]
     end
 end
