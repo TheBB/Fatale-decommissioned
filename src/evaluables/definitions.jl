@@ -104,6 +104,11 @@ end
 
 @inline (self::Constant)(_, _) = self.value
 
+# Constants should not be considered equal to each other unless they
+# have the same value.
+Base.hash(self::Constant, x::UInt64) = hash(self.value, x)
+Base.:(==)(l::Constant, r::Constant) = l.value == r.value
+
 
 """
     Contract(l, r, linds, rinds, tinds)
