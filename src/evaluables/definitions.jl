@@ -201,3 +201,35 @@ arguments(self::GetIndex) = [self.arg]
         self.storage
     end
 end
+
+
+"""
+    Reshape(arg, size...)
+
+Represents a reshaped array `arg` with new size `size`.
+"""
+struct Reshape{T} <: Evaluable{T}
+    arg :: Evaluable
+    storage :: T
+
+    function Reshape(arg::Evaluable, size...)
+        size = collect(size)
+
+        colon = findfirst(x->x==:, size)
+        if colon != nothing
+            size[colon] = div(length(arg), prod(k for k in size if !isa(k, Colon)))
+        end
+
+        rtype = marray(size, eltype(arg))
+        @assert length(rtype) == length(arg)
+
+        new{rtype}(arg, rtype(undef))
+    end
+end
+
+arguments(self::Reshape) = [self.arg]
+
+function (self::Reshape)(_, _, arg)
+    self.storage[:] .= arg[:]
+    self.storage
+end

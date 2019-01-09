@@ -1,9 +1,11 @@
 Base.eltype(::Type{<:Evaluable{T}}) where {T} = eltype(T)
+Base.length(::Type{<:Evaluable{T}}) where {T} = length(T)
 Base.ndims(::Type{<:Evaluable{T}}) where {T} = ndims(T)
 Base.size(::Type{<:Evaluable{T}}) where {T} = size(T)
 Base.size(::Type{<:Evaluable{T}}, i) where {T} = size(T, i)
 
 Base.eltype(::Evaluable{T}) where {T} = eltype(T)
+Base.length(::Evaluable{T}) where {T} = length(T)
 Base.ndims(::Evaluable{T}) where {T} = ndims(T)
 Base.size(::Evaluable{T}) where {T} = size(T)
 Base.size(::Evaluable{T}, i) where {T} = size(T, i)
@@ -24,6 +26,8 @@ function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
 end
 
 Base.getindex(self::Evaluable, inds...) = GetIndex(self, inds...)
+
+Base.reshape(self::Evaluable, size...) = Reshape(self, size...)
 
 
 localpoint(n) = LocalCoords(n).point
