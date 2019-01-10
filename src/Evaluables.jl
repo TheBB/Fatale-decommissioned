@@ -1,6 +1,7 @@
 module Evaluables
 
-import Base: @_inline_meta
+import Base: @_inline_meta, Broadcast
+import Base.Broadcast: broadcast_shape
 import Base.Iterators: flatten, product
 
 using DataStructures

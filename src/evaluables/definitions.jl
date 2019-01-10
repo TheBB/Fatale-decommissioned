@@ -224,3 +224,30 @@ end
 arguments(self::UnsafeReshape) = [self.arg]
 
 codegen(::Type{UnsafeReshape{T}}, self, _, _, arg) where {T} = :(UnsafeArray(pointer($arg), $(size(T))))
+
+
+"""
+    Product(args...)
+
+Represents an elementwise product.
+"""
+struct Product{T} <: Evaluable{T}
+    args :: Vector{Evaluable}
+    storage :: T
+
+    function Product(args...)
+        @assert length(args) == 2
+        newsize = broadcast_shape(map(size, args)...)
+        newtype = reduce(promote_type, map(eltype, args))
+        rtype = marray(newsize, newtype)
+        new{rtype}(collect(Evaluable, args), rtype(undef))
+    end
+end
+
+arguments(self::Product) = self.args
+
+# TODO: Figure out how to avoid allocations caused by splatting.
+function (self::Product)(_, _, a, b)
+    self.storage .= .*(a, b)
+    self.storage
+end

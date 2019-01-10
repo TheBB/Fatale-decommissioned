@@ -19,6 +19,11 @@ marray(size, eltype) = array(size, eltype, MArray)
 sarray(size, eltype) = array(size, eltype, SArray)
 
 
+Broadcast.broadcasted(::typeof(*), l::Evaluable) = l
+Broadcast.broadcasted(::typeof(*), l::Product, r::Evaluable) = Product(arguments(l)..., r)
+Broadcast.broadcasted(::typeof(*), l::Evaluable, r::Product) = Product(l, arguments(r)...)
+Broadcast.broadcasted(::typeof(*), l::Evaluable, r::Evaluable) = Product(l, r)
+
 function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     index = findfirst(x->x==v, T.parameters[1])
     index == nothing && return getfield(self, v)
