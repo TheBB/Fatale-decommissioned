@@ -46,3 +46,16 @@ end
         1.0 3.0 9.0 27.0 81.0;
     ]
 end
+
+
+@testset "Lagrange" begin
+    domain = TensorDomain(1)
+    element = domain[1]
+    func = compile(basis(domain, Lagrange, 4))
+
+    @test func(element, @SVector [0.00]) ≈ [1.0, 0.0, 0.0, 0.0, 0.0]
+    @test func(element, @SVector [0.25]) ≈ [0.0, 1.0, 0.0, 0.0, 0.0]
+    @test func(element, @SVector [0.50]) ≈ [0.0, 0.0, 1.0, 0.0, 0.0]
+    @test func(element, @SVector [0.75]) ≈ [0.0, 0.0, 0.0, 1.0, 0.0]
+    @test func(element, @SVector [1.00]) ≈ [0.0, 0.0, 0.0, 0.0, 1.0]
+end
