@@ -37,7 +37,11 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     coeffs = SMatrix{degree+1, degree+1}(coeffs)
     basis1d = Contract(poly, Constant(coeffs), (1, 2), (2, 3), (1, 3))
 
-    basis1d
+    # Reshape and form an outer product
+    factors = [reshape(basis1d[k,:], ones(Int,k-1)..., :) for k in 1:D]
+    outer = .*(factors...)
+
+    outer
 end
 
 end
