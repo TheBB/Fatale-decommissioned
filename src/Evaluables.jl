@@ -33,6 +33,10 @@ arguments(::Evaluable) = Evaluable[]
 Base.hash(self::Evaluable, x::UInt64) = hash(typeof(self), hash(arguments(self), x))
 Base.:(==)(l::Evaluable, r::Evaluable) = typeof(l) == typeof(r) && arguments(l) == arguments(r)
 
+# Code generation for most evaluables involves simply calling the
+# evaluable object directly.
+codegen(::Type{<:Evaluable}, self, args...) = :($self($(args...)))
+
 
 include("evaluables/definitions.jl")
 include("evaluables/compilation.jl")

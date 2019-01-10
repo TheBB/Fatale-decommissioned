@@ -17,7 +17,8 @@ end
 
     codes = Expr[]
     for (i, (sym, args)) in enumerate(zip(syms, argsyms))
-        push!(codes, :($sym = self.funcs[$i](element, quadpt, $(args...))))
+        code = codegen(K.parameters[i], :(self.funcs[$i]), :element, :quadpt, args...)
+        push!(codes, :($sym = $code))
     end
 
     quote
