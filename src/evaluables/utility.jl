@@ -33,10 +33,12 @@ end
 Base.getindex(self::Evaluable, inds...) = GetIndex(self, inds...)
 
 function Base.reshape(self::Evaluable, size...)
-    size = collect(size)
+    size = collect(Union{Int,Colon}, size)
     colon = findfirst(x->x==:, size)
-    if colon != nothing
+    if colon != nothing && length(size) > 1
         size[colon] = div(length(self), prod(k for k in size if !isa(k, Colon)))
+    elseif colon != nothing
+        size[colon] = length(self)
     end
 
     arraytype(self) == MArray && return UnsafeReshape(self, size...)
