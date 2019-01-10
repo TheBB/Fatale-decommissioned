@@ -45,3 +45,16 @@ end
 @testset "Monomials" begin
     @noallocs _monomials()
 end
+
+
+function _lagbasis()
+    domain = TensorDomain(1, 1)
+    func = compile(basis(domain, Lagrange, 3))
+    element = domain[1, 1]
+    quadpt = @SVector [0.3, 0.7]
+    @bench $func($element, $quadpt)
+end
+
+@testset "Lagrangian Basis" begin
+    @noallocs _lagbasis()
+end
