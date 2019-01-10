@@ -204,32 +204,23 @@ end
 
 
 """
-    Reshape(arg, size...)
+    UnsafeReshape(arg, size...)
 
 Represents a reshaped array `arg` with new size `size`.
 """
-struct Reshape{T} <: Evaluable{T}
+struct UnsafeReshape{T} <: Evaluable{T}
     arg :: Evaluable
-    storage :: T
 
-    function Reshape(arg::Evaluable, size...)
-        size = collect(size)
-
-        colon = findfirst(x->x==:, size)
-        if colon != nothing
-            size[colon] = div(length(arg), prod(k for k in size if !isa(k, Colon)))
-        end
+    function UnsafeReshape(arg::Evaluable, size...)
+        @assert arraytype(arg) == MArray
 
         rtype = marray(size, eltype(arg))
         @assert length(rtype) == length(arg)
 
-        new{rtype}(arg, rtype(undef))
+        new{rtype}(arg)
     end
 end
 
-arguments(self::Reshape) = [self.arg]
+arguments(self::UnsafeReshape) = [self.arg]
 
-function (self::Reshape)(_, _, arg)
-    self.storage[:] .= arg[:]
-    self.storage
-end
+codegen(::Type{UnsafeReshape{T}}, self, _, _, arg) where {T} = :(UnsafeArray(pointer($arg), $(size(T))))

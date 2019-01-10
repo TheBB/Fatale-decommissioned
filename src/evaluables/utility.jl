@@ -27,7 +27,16 @@ end
 
 Base.getindex(self::Evaluable, inds...) = GetIndex(self, inds...)
 
-Base.reshape(self::Evaluable, size...) = Reshape(self, size...)
+function Base.reshape(self::Evaluable, size...)
+    size = collect(size)
+    colon = findfirst(x->x==:, size)
+    if colon != nothing
+        size[colon] = div(length(self), prod(k for k in size if !isa(k, Colon)))
+    end
+
+    arraytype(self) == MArray && return UnsafeReshape(self, size...)
+    error("reshape not defined for this array type")
+end
 
 
 localpoint(n) = LocalCoords(n).point

@@ -6,6 +6,7 @@ import Base.Iterators: flatten, product
 using DataStructures
 using LinearAlgebra
 using StaticArrays
+using UnsafeArrays
 
 using ..Transforms
 using ..Elements
