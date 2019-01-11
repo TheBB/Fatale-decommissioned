@@ -30,7 +30,16 @@ function Base.getproperty(self::Evaluable{T}, v::Symbol) where {T<:NamedTuple}
     GetProperty{T.parameters[2].parameters[index], v}(self)
 end
 
-Base.getindex(self::Evaluable, inds...) = GetIndex(self, inds...)
+function Base.getindex(self::Evaluable, inds...)
+    @assert length(inds) == ndims(restype(self))
+    @assert all(
+        isa(i, Colon) || isa(i, Integer) && 1 <= i <= s
+        for (i, s) in zip(inds, size(self))
+    )
+
+    arraytype(self) == MArray && return UnsafeGetIndex(self, inds...)
+    error("getindex not defined for this array type")
+end
 
 function Base.reshape(self::Evaluable, size...)
     size = collect(Union{Int,Colon}, size)

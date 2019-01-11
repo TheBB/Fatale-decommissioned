@@ -1,6 +1,6 @@
 module Fatale
 
-using StaticArrays
+include("internal.jl")
 
 include("Utils.jl")
 include("Transforms.jl")

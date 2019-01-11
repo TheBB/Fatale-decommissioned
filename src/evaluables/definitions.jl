@@ -170,37 +170,27 @@ end
 
 
 """
-    GetIndex(arg, inds...)
+    UnsafeGetIndex(arg, inds...)
 
 Represents an expression arg[inds...]. Works with statically known
 integers and colons only.
 """
-struct GetIndex{Inds, T} <: Evaluable{T}
+struct UnsafeGetIndex{Inds, T} <: Evaluable{T}
     arg :: Evaluable
-    storage :: T
 
-    function GetIndex(arg::Evaluable, inds...)
-        @assert length(inds) == ndims(restype(arg))
-        @assert all(
-            isa(i, Colon) || isa(i, Integer) && 1 <= i <= s
-            for (i, s) in zip(inds, size(arg))
-        )
+    function UnsafeGetIndex(arg::Evaluable, inds...)
+        @assert arraytype(arg) == MArray
 
         ressize = Tuple(s for (i, s) in zip(inds, size(arg)) if isa(i, Colon))
         rtype = marray(ressize, eltype(arg))
-        new{Tuple{inds...}, rtype}(arg, rtype(undef))
+        new{Tuple{inds...}, rtype}(arg)
     end
 end
 
-arguments(self::GetIndex) = [self.arg]
+arguments(self::UnsafeGetIndex) = [self.arg]
 
-@generated function (self::GetIndex{inds})(_, _, arg) where {inds}
-    quote
-        @_inline_meta
-        self.storage .= arg[$(inds.parameters...)]
-        self.storage
-    end
-end
+codegen(::Type{<:UnsafeGetIndex{Inds}}, self, _, _, arg) where {Inds} =
+    :(uview($arg, $(Inds.parameters...)))
 
 
 """
@@ -216,7 +206,6 @@ struct UnsafeReshape{T} <: Evaluable{T}
 
         rtype = marray(size, eltype(arg))
         @assert length(rtype) == length(arg)
-
         new{rtype}(arg)
     end
 end
