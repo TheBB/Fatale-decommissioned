@@ -248,3 +248,31 @@ struct Elementwise{T,A} <: Evaluable{T}
 end
 
 @inline (self::Elementwise)(element, _) = self.data[element.index]
+Base.maximum(self::Elementwise) = maximum(self.data)
+
+
+struct Inflate{T} <: Evaluable{T}
+    data :: Evaluable
+    indices :: Evaluable
+    axis :: Int
+
+    function Inflate(data, indices, axis)
+        @assert 1 <= axis <= ndims(data)
+        @assert ndims(indices) == 1
+        @assert length(indices) == size(data, axis)
+        @assert eltype(indices) == Int
+
+        newsize = collect(size(data))
+        newsize[axis] = maximum(indices)
+
+        # Inflate is a dummy evaluable that should never be called, so
+        # this return type is just used to encode size. It's fine that
+        # it is a huge static array.
+        rtype = marray(newsize, eltype(data))
+        new{rtype}(data, indices, axis)
+    end
+end
+
+arguments(self::Inflate) = [self.data, self.indices]
+
+(::Inflate)(_...) = error("explicit inflation")

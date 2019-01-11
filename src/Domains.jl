@@ -45,6 +45,7 @@ end
 @inline Base.size(self::TensorDofMap) = Tuple(length(r) for r in self.roots)
 @inline Base.IndexStyle(::Type{<:TensorDofMap}) = IndexCartesian()
 @inline Base.getindex(self::TensorDofMap, I::Vararg{Int,D}) where {D} = self[I]
+@inline Base.maximum(self::TensorDofMap) = maximum(self[size(self)])
 
 @generated function Base.getindex(self::TensorDofMap{T,D,L}, I::NTuple{D,Int}) where {T,D,L}
     len = length(T)
@@ -103,9 +104,9 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     factors = [reshape(basis1d[k,:], ones(Int,k-1)..., :) for k in 1:D]
     outer = .*(factors...)
 
+    # Inflate with correct degrees of freedom
     dofmap = TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
-
-    (reshape(outer, :), Elementwise(dofmap))
+    Inflate(reshape(outer, :), Elementwise(dofmap), 1)
 end
 
 end
