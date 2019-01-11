@@ -103,7 +103,9 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     factors = [reshape(basis1d[k,:], ones(Int,k-1)..., :) for k in 1:D]
     outer = .*(factors...)
 
-    reshape(outer, :)
+    dofmap = TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
+
+    (reshape(outer, :), Elementwise(dofmap))
 end
 
 end

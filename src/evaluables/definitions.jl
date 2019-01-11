@@ -240,3 +240,11 @@ function (self::Product)(_, _, a, b)
     self.storage .= .*(a, b)
     self.storage
 end
+
+
+struct Elementwise{T,A} <: Evaluable{T}
+    data :: A
+    Elementwise(a::AbstractArray{T}) where {T} = new{T, typeof(a)}(a)
+end
+
+@inline (self::Elementwise)(element, _) = self.data[element.index]
