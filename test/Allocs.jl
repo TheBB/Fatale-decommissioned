@@ -23,6 +23,17 @@ end
 end
 
 
+function _tensordofmap()
+    domain = TensorDomain(2, 3, 4)
+    dofmap = TensorDofMap(size(domain), (1, 2, 1), (3, 3, 2))
+    @bench $dofmap[1, 3, 2]
+end
+
+@testset "TensorDofMap" begin
+    @noallocs _tensordofmap()
+end
+
+
 function _globalpoint()
     func = compile(globalpoint(2))
     element = FullElement(Shift(@SVector rand(2)))
