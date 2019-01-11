@@ -7,7 +7,7 @@ using ..Elements
 using ..Evaluables
 
 export TensorDomain, TensorDofMap
-export basis, Lagrange
+export localbasis, globalbasis, Lagrange
 
 
 # Basis types
@@ -93,7 +93,9 @@ end
     FullElement(Shift(shift), I)
 end
 
-function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
+dofmap(self::TensorDomain{D}) where D = TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
+
+function localbasis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     # Generate N single-dimensional Lagrangian bases of the right degree
     poly = Monomials(localpoint(D), degree)
     coeffs = inv(range(0, 1, length=degree+1) .^ reshape(0:degree, 1, :))
@@ -103,10 +105,13 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     # Reshape and form an outer product
     factors = [reshape(basis1d[k,:], ones(Int,k-1)..., :) for k in 1:D]
     outer = .*(factors...)
+    reshape(outer, :)
+end
 
-    # Inflate with correct degrees of freedom
-    dofmap = TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
-    Inflate(reshape(outer, :), Elementwise(dofmap), 1)
+
+function globalbasis(self::Domain, kind, degree)
+    loc = localbasis(self, kind, degree)
+    Inflate(loc, Elementwise(dofmap(self)), 1)
 end
 
 end

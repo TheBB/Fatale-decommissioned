@@ -51,7 +51,7 @@ end
 @testset "Lagrange" begin
     domain = TensorDomain(1)
     element = domain[1]
-    func = compile(basis(domain, Lagrange, 4))
+    func = compile(localbasis(domain, Lagrange, 4))
 
     @test func(element, @SVector [0.00]) ≈ [1.0, 0.0, 0.0, 0.0, 0.0]
     @test func(element, @SVector [0.25]) ≈ [0.0, 1.0, 0.0, 0.0, 0.0]
