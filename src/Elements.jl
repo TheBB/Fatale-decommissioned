@@ -63,30 +63,40 @@ abstract type Element{D} end
 Base.ndims(::Type{<:Element{D}}) where {D} = D
 Base.ndims(::Element{D}) where {D} = D
 
-struct FullElement{D, Trf<:Transform} <: Element{D}
+struct FullElement{D, I, Trf<:Transform} <: Element{D}
     transform :: Trf
+    index :: I
 end
 
-@generated function FullElement(trf)
+# Convenience constructor that doesn't care about index. This is
+# useful for testing evaluables that also don't care about index.
+FullElement(trf) = FullElement(trf, nothing)
+
+@generated function FullElement(trf, index)
     @assert trf <: Transform
     @assert fromdims(trf) == todims(trf)
     quote
         $(Expr(:meta, :inline))
-        FullElement{$(todims(trf)), $trf}(trf)
+        FullElement{$(todims(trf)), $index, $trf}(trf, index)
     end
 end
 
-struct SubElement{D, Trf<:Transform, Parent<:Element} <: Element{D}
+struct SubElement{D, I, Trf<:Transform, Parent<:Element} <: Element{D}
     transform :: Trf
     parent :: Parent
+    index :: I
 end
 
-@generated function SubElement(trf, parent)
+# Convenience constructor that doesn't care about index. This is
+# useful for testing evaluables that also don't care about index.
+SubElement(trf, parent) = SubElement(trf, parent, nothing)
+
+@generated function SubElement(trf, parent, index)
     @assert trf <: Transform
     @assert todims(trf) == ndims(parent)
     quote
         $(Expr(:meta, :inline))
-        SubElement{$(todims(trf)), $trf, $parent}(trf, parent)
+        SubElement{$(todims(trf)), $index, $trf, $parent}(trf, parent, index)
     end
 end
 

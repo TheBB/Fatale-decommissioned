@@ -75,7 +75,11 @@ end
 
 abstract type Domain{Elt,Ref,N} <: AbstractArray{Elt,N} end
 
-struct TensorDomain{D} <: Domain{FullElement{D,Shift{D,Float64}}, Tensor{D,NTuple{D,Simplex{1}}}, D}
+
+const TensorElement{D} = FullElement{D, NTuple{D, Int}, Shift{D, Float64}}
+const TensorReference{D} = Tensor{D, NTuple{D, Simplex{1}}}
+
+struct TensorDomain{D} <: Domain{TensorElement{D}, TensorReference{D}, D}
     size :: NTuple{D,Int}
     TensorDomain(I::Int...) = new{length(I)}(I)
 end
@@ -85,7 +89,7 @@ end
 @inline function Base.getindex(self::TensorDomain{D}, I::Vararg{Int,D}) where {D}
     @boundscheck checkbounds(self, I...)
     shift = SVector{D,Float64}(I) - 1.0
-    FullElement(Shift(shift))
+    FullElement(Shift(shift), I)
 end
 
 function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
