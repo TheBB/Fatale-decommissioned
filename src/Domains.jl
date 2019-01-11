@@ -41,7 +41,7 @@ function basis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     factors = [reshape(basis1d[k,:], ones(Int,k-1)..., :) for k in 1:D]
     outer = .*(factors...)
 
-    outer
+    reshape(outer, :)
 end
 
 end
