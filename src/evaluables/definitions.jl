@@ -276,3 +276,17 @@ end
 arguments(self::Inflate) = [self.data, self.indices]
 
 (::Inflate)(_...) = error("explicit inflation")
+
+
+struct Tupl{T} <: Evaluable{T}
+    args :: Tuple{Vararg{Evaluable}}
+
+    function Tupl(args...)
+        rtype = Tuple{(restype(arg) for arg in args)...}
+        new{rtype}(args)
+    end
+end
+
+arguments(self::Tupl) = collect(self.args)
+
+@inline (::Tupl)(_, _, args::Vararg{Any}) = args
