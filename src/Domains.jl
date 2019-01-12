@@ -93,7 +93,8 @@ end
     FullElement(Shift(shift), I)
 end
 
-dofmap(self::TensorDomain{D}) where D = TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
+dofmap(self::TensorDomain{D}, ::Type{Lagrange}, degree) where D =
+    TensorDofMap(size(self), ntuple(_->degree, D), ntuple(_->degree+1, D))
 
 function localbasis(self::TensorDomain{D}, ::Type{Lagrange}, degree) where {D}
     # Generate N single-dimensional Lagrangian bases of the right degree
@@ -111,7 +112,7 @@ end
 
 function globalbasis(self::Domain, kind, degree)
     loc = localbasis(self, kind, degree)
-    Inflate(loc, Elementwise(dofmap(self)), 1)
+    Inflate(loc, Elementwise(dofmap(self, kind, degree)), 1)
 end
 
 end
