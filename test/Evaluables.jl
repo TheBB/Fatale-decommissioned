@@ -1,6 +1,6 @@
 @testset "LocalPoint" begin
     Random.seed!(201812131215)
-    func = compile(localpoint(2))
+    func = optimize(localpoint(2))
 
     element = FullElement(Shift(@SVector rand(2)))
     quadpt = @SVector rand(2)
@@ -18,7 +18,7 @@ end
 
 @testset "GlobalPoint" begin
     Random.seed!(201812131219)
-    func = compile(globalpoint(2))
+    func = optimize(globalpoint(2))
     shift = @SVector rand(2)
 
     element = FullElement(Shift(shift))
@@ -36,7 +36,7 @@ end
 
 
 @testset "Monomials" begin
-    func = compile(Monomials(localpoint(3), 4))
+    func = optimize(Monomials(localpoint(3), 4))
     element = FullElement(Empty{3,Float64}())
     quadpt = @SVector [1.0, 2.0, 3.0]
 
@@ -51,11 +51,27 @@ end
 @testset "Lagrange" begin
     domain = TensorDomain(1)
     element = domain[1]
-    func = compile(localbasis(domain, Lagrange, 4))
+    func = optimize(localbasis(domain, Lagrange, 4))
 
     @test func(element, @SVector [0.00]) ≈ [1.0, 0.0, 0.0, 0.0, 0.0]
     @test func(element, @SVector [0.25]) ≈ [0.0, 1.0, 0.0, 0.0, 0.0]
     @test func(element, @SVector [0.50]) ≈ [0.0, 0.0, 1.0, 0.0, 0.0]
     @test func(element, @SVector [0.75]) ≈ [0.0, 0.0, 0.0, 1.0, 0.0]
     @test func(element, @SVector [1.00]) ≈ [0.0, 0.0, 0.0, 0.0, 1.0]
+end
+
+
+@testset "Blocks" begin
+    domain = TensorDomain(2)
+    func = compile(globalbasis(domain, Lagrange, 2))
+
+    @test indices(func[1], domain[1]) == ([1, 2, 3],)
+    @test indices(func[1], domain[2]) == ([3, 4, 5],)
+
+    @test func[1](domain[1], @SVector [0.0]) ≈ [1.0, 0.0, 0.0]
+    @test func[1](domain[1], @SVector [0.5]) ≈ [0.0, 1.0, 0.0]
+    @test func[1](domain[1], @SVector [1.0]) ≈ [0.0, 0.0, 1.0]
+    @test func[1](domain[2], @SVector [0.0]) ≈ [1.0, 0.0, 0.0]
+    @test func[1](domain[2], @SVector [0.5]) ≈ [0.0, 1.0, 0.0]
+    @test func[1](domain[2], @SVector [1.0]) ≈ [0.0, 0.0, 1.0]
 end

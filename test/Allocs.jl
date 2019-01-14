@@ -35,7 +35,7 @@ end
 
 
 function _globalpoint()
-    func = compile(globalpoint(2))
+    func = optimize(globalpoint(2))
     element = FullElement(Shift(@SVector rand(2)))
     quadpt = @SVector rand(2)
     @bench $func($element, $quadpt)
@@ -47,7 +47,7 @@ end
 
 
 function _monomials()
-    func = compile(Monomials(localpoint(3), 4))
+    func = optimize(Monomials(localpoint(3), 4))
     element = FullElement(Empty{3,Float64}())
     quadpt = @SVector [1.0, 2.0, 3.0]
     @bench $func($element, $quadpt)
@@ -60,7 +60,7 @@ end
 
 function _lagbasis()
     domain = TensorDomain(1, 1)
-    func = compile(localbasis(domain, Lagrange, 3))
+    func = optimize(localbasis(domain, Lagrange, 3))
     element = domain[1, 1]
     quadpt = @SVector [0.3, 0.7]
     @bench $func($element, $quadpt)
@@ -68,4 +68,20 @@ end
 
 @testset "Lagrangian Basis" begin
     @noallocs _lagbasis()
+end
+
+
+function _blockeval()
+    domain = TensorDomain(1)
+    func = compile(globalbasis(domain, Lagrange, 2))
+    element = domain[1]
+    quadpt = @SVector [0.4]
+    @bench begin
+        indices($func[1], $element)
+        $func[1]($element, $quadpt)
+    end
+end
+
+@testset "Block Evaluation" begin
+    @noallocs _blockeval()
 end

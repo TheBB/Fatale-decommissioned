@@ -287,6 +287,10 @@ struct Tupl{T} <: Evaluable{T}
     end
 end
 
-arguments(self::Tupl) = collect(self.args)
+Base.iterate(self::Tupl) = iterate(self.args)
+Base.iterate(self::Tupl, state) = iterate(self.args, state)
+Base.length(self::Tupl) = length(self.args)
+Base.getindex(self::Tupl, i) = self.args[i]
 
+arguments(self::Tupl) = collect(self.args)
 @inline (::Tupl)(_, _, args::Vararg{Any}) = args

@@ -1,16 +1,64 @@
-struct CompiledEvaluable{T, I, K} <: Evaluable{T}
-    funcs :: K
-    CompiledEvaluable{T,I}(funcs::K) where {T,I,K} = new{T,I,K}(funcs)
+struct Block
+    indices :: Tupl
+    data :: Evaluable
+
+    function Block(indices, data)
+        @assert length(indices) == ndims(data)
+        @assert all(length(ind) == size(data, i) for (i, ind) in enumerate(indices))
+        new(indices, data)
+    end
 end
 
-function compile(self::Evaluable{T}) where {T}
+function blocks(self::Evaluable)
+    indices = Tupl((Constant(SVector{n}(1:n)) for n in size(self))...)
+    [Block(indices, self)]
+end
+
+function blocks(self::Inflate)
+    # TODO: Lift these limitations
+    @assert !(self.data isa Inflate)
+    @assert ndims(self) == 1
+    [Block(Tupl(self.indices), self.data)]
+end
+
+
+struct CompiledBlock{I,D}
+    indices :: I
+    data :: D
+end
+
+@inline indices(self::CompiledBlock, element) = self.indices(element, nothing)
+@inline (self::CompiledBlock)(element, quadpt) = self.data(element, quadpt)
+
+compile(self::Block) = CompiledBlock(optimize(self.indices), optimize(self.data))
+
+
+struct CompiledBlocks{K<:Tuple}
+    blocks :: K
+end
+
+@inline Base.getindex(self::CompiledBlocks, i) = self.blocks[i]
+@inline Base.length(self::CompiledBlocks) = length(self.blocks)
+
+compile(self::Evaluable) = CompiledBlocks(Tuple(compile(block) for block in blocks(self)))
+
+
+# =============================================================================
+# Optimized evaluables that are directly callable
+
+struct OptimizedEvaluable{T, I, K} <: Evaluable{T}
+    funcs :: K
+    OptimizedEvaluable{T,I}(funcs::K) where {T,I,K} = new{T,I,K}(funcs)
+end
+
+function optimize(self::Evaluable{T}) where {T}
     sequence = linearize(self)
     funcs = Tuple(stage.func for stage in sequence)
     Indices = Tuple{(Tuple{stage.arginds...} for stage in sequence)...}
-    CompiledEvaluable{T,Indices}(funcs)
+    OptimizedEvaluable{T,Indices}(funcs)
 end
 
-@generated function (self::CompiledEvaluable{T,I,K})(element, quadpt) where {T,I,K}
+@generated function (self::OptimizedEvaluable{T,I,K})(element, quadpt) where {T,I,K}
     nfuncs = length(K.parameters)
     syms = [gensym() for _ in 1:nfuncs]
     argsyms = [[syms[j] for j in tp.parameters] for tp in I.parameters]

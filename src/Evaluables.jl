@@ -12,9 +12,9 @@ using UnsafeArrays
 using ..Transforms
 using ..Elements
 
-export Constant, Contract, Elementwise, Inflate, Monomials, Tupl
+export Constant, Contract, Elementwise, Inflate, Monomials
 export localpoint, localgrad, globalpoint, globalgrad
-export compile, storage
+export compile, optimize, indices
 
 
 """
