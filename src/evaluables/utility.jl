@@ -19,6 +19,27 @@ marray(size, eltype) = array(size, eltype, MArray)
 sarray(size, eltype) = array(size, eltype, SArray)
 
 
+_print(io::IO, ::Type{T}) where {T<:StaticArray} = print(io, size(T))
+
+function _print(io::IO, ::Type{T}) where {T<:Tuple}
+    print(io, "(")
+    _print(io, T.parameters[1])
+    for param in T.parameters[2:end]
+        print(io, ", ")
+        _print(io, param)
+    end
+    print(io, ")")
+end
+
+function Base.show(io::IO, self::Evaluable{T}) where T
+    print(io, string(typeof(self).name.name))
+    _print(io, T)
+end
+
+Base.show(io::IO, self::CompiledBlock) = print(io, "Blk(", self.indices, ", ", self.data, ")")
+Base.show(io::IO, self::CompiledBlocks) = print(io, "CBlks(", self.blocks..., ")")
+
+
 Broadcast.broadcasted(::typeof(*), l::Evaluable) = l
 Broadcast.broadcasted(::typeof(*), l::Product, r::Evaluable) = Product(arguments(l)..., r)
 Broadcast.broadcasted(::typeof(*), l::Evaluable, r::Product) = Product(l, arguments(r)...)
