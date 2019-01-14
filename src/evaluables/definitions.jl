@@ -193,12 +193,14 @@ codegen(::Type{<:UnsafeGetIndex{Inds}}, self, _, _, arg) where {Inds} =
     :(uview($arg, $(Inds.parameters...)))
 
 
+abstract type Reshape{T} <: Evaluable{T} end
+
 """
     UnsafeReshape(arg, size...)
 
 Represents a reshaped array `arg` with new size `size`.
 """
-struct UnsafeReshape{T} <: Evaluable{T}
+struct UnsafeReshape{T} <: Reshape{T}
     arg :: Evaluable
 
     function UnsafeReshape(arg::Evaluable, size...)

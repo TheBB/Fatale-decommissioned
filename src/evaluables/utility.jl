@@ -77,6 +77,8 @@ function Base.reshape(self::Evaluable, size...)
     error("reshape not defined for this array type")
 end
 
+Base.reshape(self::Reshape, shape...) = reshape(arguments(self)[1], shape...)
+
 
 localpoint(n) = LocalCoords(n).point
 localgrad(n) = LocalCoords(n).grad
