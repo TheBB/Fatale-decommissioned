@@ -19,7 +19,7 @@ marray(size, eltype) = array(size, eltype, MArray)
 sarray(size, eltype) = array(size, eltype, SArray)
 
 
-_repr(::Type{T}) where {T<:StaticArray} = string(size(T))
+_repr(::Type{T}) where {T<:StaticArray} = string("(", join(size(T), ","), ")")
 
 function _repr(::Type{T}) where {T<:Tuple}
     list = join((_repr(param) for param in T.parameters), ", ")
