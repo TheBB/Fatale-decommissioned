@@ -64,16 +64,18 @@ function Base.getindex(self::Evaluable, inds...)
     error("getindex not defined for this array type")
 end
 
-function Base.reshape(self::Evaluable, size...)
-    size = collect(Union{Int,Colon}, size)
-    colon = findfirst(x->x==:, size)
-    if colon != nothing && length(size) > 1
-        size[colon] = div(length(self), prod(k for k in size if !isa(k, Colon)))
+function Base.reshape(self::Evaluable, shape...)
+    shape = collect(Union{Int,Colon}, shape)
+    colon = findfirst(x->x==:, shape)
+    if colon != nothing && length(shape) > 1
+        shape[colon] = div(length(self), prod(k for k in shape if !isa(k, Colon)))
     elseif colon != nothing
-        size[colon] = length(self)
+        shape[colon] = length(self)
     end
+    shape = (shape...,)
 
-    arraytype(self) == MArray && return UnsafeReshape(self, size...)
+    size(self) == shape && return self
+    arraytype(self) == MArray && return UnsafeReshape(self, shape...)
     error("reshape not defined for this array type")
 end
 
