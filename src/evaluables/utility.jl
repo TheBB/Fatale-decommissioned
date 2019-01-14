@@ -19,21 +19,23 @@ marray(size, eltype) = array(size, eltype, MArray)
 sarray(size, eltype) = array(size, eltype, SArray)
 
 
-_print(io::IO, ::Type{T}) where {T<:StaticArray} = print(io, size(T))
+_repr(::Type{T}) where {T<:StaticArray} = string(size(T))
 
-function _print(io::IO, ::Type{T}) where {T<:Tuple}
-    print(io, "(")
-    _print(io, T.parameters[1])
-    for param in T.parameters[2:end]
-        print(io, ", ")
-        _print(io, param)
-    end
-    print(io, ")")
+function _repr(::Type{T}) where {T<:Tuple}
+    list = join((_repr(param) for param in T.parameters), ", ")
+    string("(", list, ")")
+end
+
+function _repr(::Type{T}) where {T<:NamedTuple}
+    names = T.parameters[1]
+    values = T.parameters[2].parameters
+    entries = collect(string(name, "=", _repr(value)) for (name, value) in zip(names, values))
+    list = join(entries, ", ")
+    string("{", list, "}")
 end
 
 function Base.show(io::IO, self::Evaluable{T}) where T
-    print(io, string(typeof(self).name.name))
-    _print(io, T)
+    print(io, string(typeof(self).name.name), _repr(T))
 end
 
 Base.show(io::IO, self::CompiledBlock) = print(io, "Blk(", self.indices, ", ", self.data, ")")
