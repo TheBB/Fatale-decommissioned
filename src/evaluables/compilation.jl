@@ -15,10 +15,14 @@ function blocks(self::Evaluable)
 end
 
 function blocks(self::Inflate)
-    # TODO: Lift these limitations
+    # TODO: Lift this limitation
     @assert !(self.data isa Inflate)
-    @assert ndims(self) == 1
-    [Block(Tupl(self.indices), self.data)]
+
+    indices = [
+        i == self.axis ? self.indices : Constant(SVector(1:s...))
+        for (i, s) in enumerate(size(self))
+    ]
+    [Block(Tupl(indices...), self.data)]
 end
 
 
