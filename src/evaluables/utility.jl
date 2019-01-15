@@ -74,7 +74,19 @@ function _reshape(self::Evaluable, shape::NTuple{N, Int}) where N
     error("reshape not defined for this array type")
 end
 
+# Reshaping a reshape is unnecessary
 _reshape(self::Reshape, shape::NTuple{N, Int}) where N = _reshape(arguments(self)[1], shape)
+
+# Reshaping an inflate: must maintain the inflated axis
+function _reshape(self::Inflate, shape::NTuple{N, Int}) where N
+    before = prod(size(self)[1:self.axis-1])
+    naxes = findfirst(x -> x == before, div.(cumprod(collect(shape)), shape[1]))
+    naxes == nothing && error("incorrect reshape of inflate")
+    newaxis = naxes + 1
+
+    subshape = (shape[1:newaxis-1]..., size(self.data, self.axis), shape[newaxis+1:end]...)
+    Inflate(_reshape(self.data, subshape), self.indices, newaxis)
+end
 
 Base.reshape(self::Evaluable, shape::Vararg{Int}) = _reshape(self, shape)
 
