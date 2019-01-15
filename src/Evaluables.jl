@@ -15,6 +15,7 @@ using ..Elements
 export Constant, Contract, Elementwise, Inflate, Monomials
 export localpoint, localgrad, globalpoint, globalgrad
 export ast, compile, optimize, indices
+export ..
 
 
 """

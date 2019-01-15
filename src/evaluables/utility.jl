@@ -64,23 +64,47 @@ function Base.getindex(self::Evaluable, inds...)
     error("getindex not defined for this array type")
 end
 
-function Base.reshape(self::Evaluable, shape...)
-    shape = collect(Union{Int,Colon}, shape)
-    colon = findfirst(x->x==:, shape)
-    if colon != nothing && length(shape) > 1
-        shape[colon] = div(length(self), prod(k for k in shape if !isa(k, Colon)))
-    elseif colon != nothing
-        shape[colon] = length(self)
-    end
-    shape = (shape...,)
 
+# =============================================================================
+# Reshaping
+
+function _reshape(self::Evaluable, shape::NTuple{N, Int}) where N
     size(self) == shape && return self
     arraytype(self) == MArray && return UnsafeReshape(self, shape...)
     error("reshape not defined for this array type")
 end
 
-Base.reshape(self::Reshape, shape...) = reshape(arguments(self)[1], shape...)
+_reshape(self::Reshape, shape::NTuple{N, Int}) where N = _reshape(arguments(self)[1], shape)
 
+Base.reshape(self::Evaluable, shape::Vararg{Int}) = _reshape(self, shape)
+
+# Allow a single colon
+function Base.reshape(self::Evaluable, shape::Vararg{Union{Int,Colon}})
+    shape = collect(Union{Int,Colon}, shape)
+    colon = findfirst(x -> x == :, shape)
+    if length(shape) > 1
+        shape[colon] = div(length(self), prod(k for k in shape if !isa(k, Colon)))
+    else
+        shape[colon] = length(self)
+    end
+    @assert all(s isa Int for s in shape)
+    _reshape(self, (shape...,))
+end
+
+const .. = Val{:..}()
+
+# Allow a single ..
+function Base.reshape(self::Evaluable, shape::Vararg{Union{Int,Val{:..}}})
+    shape = collect(Union{Int,Colon}, shape)
+    ellipsis = findfirst(x -> x isa Val{:..}, shape)
+    shape = vcat(shape[1:ellipsis-1], collect(size(self)), shape[ellipsis+1:end])
+    @assert all(s isa Int for s in shape)
+    _reshape(self, (shape...,))
+end
+
+
+# =============================================================================
+# Convenience constructors
 
 localpoint(n) = LocalCoords(n).point
 localgrad(n) = LocalCoords(n).grad
